@@ -1,0 +1,5 @@
+{
+  "dependencies": {
+    "node-file-dialog": "https://github.com/TheLeerName/node-file-dialog/tarball/main"
+  }
+}
