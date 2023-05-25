@@ -1,0 +1,57 @@
+<html lang="en">
+	<head>
+		<meta charset="UTF-8">
+		<title>Shadertoy To Flixel</title>
+		<style>
+		html {
+			background: url('https://www.shadertoy.com/img/themes/classic/background.jpg') no-repeat center center fixed;
+			background-size: cover;
+			height: 100%;
+			overflow: hidden;
+		}
+		</style>
+	</head>
+	<body>
+		<h1 style="font-family:verdana;text-align:center;">Shadertoy to Flixel</h1>
+		<p style="text-align:center;">
+			<input type="file" id="inputfile" accept=".frag"/>
+		</p>
+		<h4 style="font-family:verdana;text-align:center;opacity:0;" id="finishlog">Successfully converted!</h4>
+	</body>
+
+	<script type="text/javascript" src="assets/ShadertoyToFlixel.js"></script>
+	<script>
+		var exports = {};
+		var fileName = null;
+		var data = null;
+		document.getElementById('inputfile').addEventListener('change', function() {
+			//console.log(this.files[0].name);
+			fileName = this.files[0].name;
+			var fr = new FileReader();
+			fr.onload = function() {
+				data = fr.result;
+				//console.log(fileName, data);
+				data = doThing(data);
+				document.getElementById('finishlog').style.opacity = 1;
+				setTimeout(() => {
+					document.getElementById('finishlog').style.opacity = 0;
+				}, 2000);
+				download(data, fileName.substring(0, fileName.lastIndexOf("/") + 1) + 'flixel-' + fileName.substring(fileName.lastIndexOf("/") + 1), 'text/plain');
+			}
+			fr.readAsText(this.files[0]);
+		})
+
+		function download(content, filename, contentType) {
+			if(!contentType) contentType = 'application/octet-stream';
+			var url = window.URL.createObjectURL(new Blob([content], {'type':contentType}));
+			var a = document.createElement('a');
+			a.style.setProperty("display", "none");
+			document.body.appendChild(a);
+			a.href = url;
+			a.download = filename;
+			a.click();
+			window.URL.revokeObjectURL(url);
+			a.remove();
+		}
+	</script>
+</html>
