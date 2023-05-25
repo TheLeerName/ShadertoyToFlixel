@@ -1,25 +1,5 @@
-const fs = require('fs')
-const dialog = require('node-file-dialog').dialog
-
-/*dialog({type:'open-file'}).then(file => {
-	doThing(file[0])
-}).catch(err => {})*/
-dialog({type: 'open-file', extra: {ext: "*.frag", title: "Choose a shader fragment source file...", types: { "Shader file": '.frag'}}}).then(file => {
-	var data = doThing(file[0])
-	var output = 'flixel-' + file[0].substring(file[0].lastIndexOf("/") + 1)
-	dialog({type:'save-file', extra: {startfile: output, ext: "*.frag", title: "Save a converted file...", types: { "Shader file": '.frag'}}}).then(file => {
-		console.log("[TRACE] Fragment source saved to '" + file[0] + "'!")
-		fs.writeFileSync(file[0], data)
-	})
-	.catch(err => {})
-})
-.catch(err => {})
-
-function doThing(file) {
-	if (!fs.existsSync(file)) return
-	//var file = fs.readFileSync(process.argv[2]).toString().split('\n')
-	var output = file.substring(0, file.lastIndexOf("/") + 1) + 'flixel-' + file.substring(file.lastIndexOf("/") + 1)
-	file = fs.readFileSync(file).toString().split("\n")
+doThing = (file) => {
+	file = file.split("\n")
 
 	file.splice(0, 0, "// Automatically converted with ShadertoyToFlixel.js")
 	file.splice(1, 0, "")
