@@ -1,9 +1,9 @@
 doThing = (file) => {
 	file = file.split("\n")
 
+	var watermark = false
 	var pragmaHeader = false
 	var iTime = false
-	var uv = false
 	var fragCoord = false
 	var iResolution = false
 
@@ -21,6 +21,7 @@ doThing = (file) => {
 				console.log("[TRACE] Replaced iChannel0 to bitmap in line " + i + "!")
 			}
 			if (file[i].includes("texture")) {
+				file[i] = file[i].replaceAll("flixel_texture2D", "texture")
 				file[i] = file[i].replaceAll("texture", "flixel_texture2D")
 				console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
 			}
@@ -29,8 +30,8 @@ doThing = (file) => {
 				console.log("[TRACE] Replaced fragColor to gl_FragColor in line " + i + "!")
 			}
 		}
+		if (file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
-		if (file[i].includes("vec2 uv = ")) uv = true
 		if (file[i].includes("vec2 fragCoord = ")) fragCoord = true
 		if (file[i].includes("vec2 iResolution = ")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
@@ -43,22 +44,20 @@ doThing = (file) => {
 			fixedMain = true
 		}
 		if (file[i].includes('gl_FragColor = vec4(') && file[i].includes(',')) {
-			file[i] = file[i].substring(0, file[i].indexOf(",") + 1) + " uv);"
+			file[i] = file[i].substring(0, file[i].indexOf(",") + 1) + " flixel_texture2D(bitmap, openfl_TextureCoordv).a);"
 			console.log("[TRACE] Fixed alpha channel!")
 			fixedAlpha = true
 		}
 	}
 
 	var whatever = []
-	whatever.push("// Automatically converted with ShadertoyToFlixel.js")
-	whatever.push("")
+	if (!watermark) {
+		whatever.push("// Automatically converted with ShadertoyToFlixel.js")
+		whatever.push("")
+	}
 	if (!pragmaHeader) {
 		whatever.push("#pragma header")
 		console.log("[TRACE] Added #pragma header!")
-	}
-	if (!uv) {
-		whatever.push("vec2 uv = openfl_TextureCoordv.xy;")
-		console.log("[TRACE] Added vec2 uv!")
 	}
 	if (!fragCoord) {
 		whatever.push("vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;")
@@ -76,7 +75,7 @@ doThing = (file) => {
 
 	file = whatever.concat(file)
 
-	if (!fixedMain) console.log("[ERROR] Can't fix void mainImage!")
+	if (!fixedMain) console.log("[ERROR] Can't fix void main!")
 	if (!fixedAlpha) console.log("[ERROR] Can't fix alpha channel!")
 
 	return file.join('\n')
