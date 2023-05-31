@@ -46,7 +46,7 @@ doThing = (file) => {
 			fixedMain = true
 		}
 		if (file[i].includes('gl_FragColor = vec4(') && file[i].includes(',')) {
-			file[i] = file[i].substring(0, file[i].lastIndexOf(",") + 1) + " flixel_texture2D(bitmap, openfl_TextureCoordv).a);"
+			file[i] = file[i].substring(0, file[i].lastIndexOf(",") + 1) + " flixel_texture2D(bitmap, uv).a);"
 			console.log("[TRACE] Fixed alpha channel!")
 			fixedAlpha = true
 		}
