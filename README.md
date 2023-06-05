@@ -1,6 +1,11 @@
 # Shadertoy to Flixel
 node.js script which converts fragment source (.frag) glsl shaders from [shadertoy.com](https://www.shadertoy.com) to [flixel](https://haxeflixel.com). Windows only, i dont have any other os. Uses a cool lib [node-file-dialog](https://github.com/manorit2001/node-file-dialog), check it out!
 
+## Supports shaders with
+- #version 120
+- no sound channels
+- only 2D (i think)
+
 # [Report errors here!](https://github.com/TheLeerName/ShadertoyToFlixel/issues/new)
 
 # [WEB VERSION](https://theleername.github.io/ShadertoyToFlixel/)
