@@ -43,16 +43,26 @@ doThing = (file) => {
 		if (tocheck.includes("vec2fragCoord=")) fragCoord = true
 		if (tocheck.includes("vec2iResolution=")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
-		
-		if (file[i].includes('void main(')) {
-			var bracket = file[i].includes('{')
-			file[i] = 'void main()'
-			if (bracket) file[i] = file[i] + ' {'
-			console.log("[TRACE] Fixed void main!")
-			fixedMain = true
-		}
+	}
+	
+	for (let i = 0; i < file.length; i++) {
+		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
+		if (file[i].includes('void main('))
+			file = fixVoidMain(file, i)
 		if (tocheck.includes('gl_FragColor=vec4('))
 			file = fixAlphaChannel(file, i);
+	}
+	
+	function fixVoidMain(file, i)
+	{
+		var bracket = file[i].includes('{')
+		file[i] = 'void main()'
+		if (bracket) file[i] = file[i] + ' {'
+
+		console.log("[TRACE] Fixed void main!")
+		fixedMain = true
+
+		return file
 	}
 
 	function fixAlphaChannel(file, i) {
