@@ -27,6 +27,11 @@ doThing = (file) => {
 				file[i] = file[i].replaceAll("texture(", "flixel_texture2D(")
 				console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
 			}
+			if (tocheck.includes("texture2D(")) {
+				file[i] = file[i].replaceAll("flixel_texture2D(", "texture2D(")
+				file[i] = file[i].replaceAll("texture2D(", "flixel_texture2D(")
+				console.log("[TRACE] Replaced texture2D to flixel_texture2D in line " + i + "!")
+			}
 			if (tocheck.includes("fragColor") && !tocheck.includes('void main(')) {
 				file[i] = file[i].replaceAll("fragColor", "gl_FragColor")
 				console.log("[TRACE] Replaced fragColor to gl_FragColor in line " + i + "!")
