@@ -71,10 +71,20 @@ doThing = (file) => {
 		var alphaStr = str
 		alphaStr = alphaStr.substring(alphaStr.lastIndexOf(file[i]))
 		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(");"))
+		
+		// finding uv name
+		var uvName = "uv"
+		if (alphaStr.includes("flixel_texture2D(")) {
+			uvName = alphaStr.substring(alphaStr.indexOf("flixel_texture2D("))
+			uvName = uvName.substring(uvName.indexOf(",") + 1).trim()
+			uvName = uvName.substring(0, uvName.indexOf(")"))
+			uvName = uvName.substring(0, uvName.indexOf(" "))
+			console.log("[TRACE] Found new uv name! (" + uvName + ")")
+		}
 
 		// finding and replacing alpha value
 		var alphaValue = alphaStr.substring(alphaStr.lastIndexOf(',') + 1).trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
-		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(',')) + alphaStr.substring(alphaStr.lastIndexOf(',')).replaceAll(alphaValue, "flixel_texture2D(bitmap, uv).a")
+		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(',')) + alphaStr.substring(alphaStr.lastIndexOf(',')).replaceAll(alphaValue, "flixel_texture2D(bitmap, " + uvName + ").a")
 
 		// adding new alpha value to shader
 		var prefix = str.substring(0, str.lastIndexOf(file[i]))
