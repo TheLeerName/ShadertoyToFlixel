@@ -78,7 +78,7 @@ doThing = (file) => {
 			uvName = alphaStr.substring(alphaStr.indexOf("flixel_texture2D("))
 			uvName = uvName.substring(uvName.indexOf(",") + 1).trim()
 			uvName = uvName.substring(0, uvName.indexOf(")"))
-			uvName = uvName.substring(0, uvName.indexOf(" "))
+			if (uvName.includes(" ")) uvName = uvName.replaceAll(" ", "")
 			console.log("[TRACE] Found new uv name! (" + uvName + ")")
 		}
 
