@@ -70,8 +70,8 @@ doThing = (file) => {
 		var str = file.join('\n')
 		var alphaStr = str
 		alphaStr = alphaStr.substring(alphaStr.lastIndexOf(file[i]))
-		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(");"))
-		
+		alphaStr = alphaStr.substring(0, alphaStr.indexOf(");"))
+
 		// finding uv name
 		var uvName = "uv"
 		if (alphaStr.includes("flixel_texture2D(")) {
@@ -88,7 +88,7 @@ doThing = (file) => {
 
 		// adding new alpha value to shader
 		var prefix = str.substring(0, str.lastIndexOf(file[i]))
-		var suffix = str.substring(str.lastIndexOf(file[i])).substring(str.substring(str.lastIndexOf(file[i])).lastIndexOf(");"))
+		var suffix = str.substring(str.lastIndexOf(file[i])).substring(str.substring(str.lastIndexOf(file[i])).indexOf(");"))
 		str = prefix + alphaStr + suffix
 
 		console.log("[TRACE] Fixed alpha channel!")
