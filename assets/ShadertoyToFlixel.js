@@ -41,6 +41,11 @@ doThing = (file) => {
 		if (tocheck.includes("vec2fragCoord=")) fragCoord = true
 		if (tocheck.includes("vec2iResolution=")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
+		
+		if (tocheck.startsWith("#undef")) {
+			file.splice(i, 1)
+			i--
+		}
 	}
 	
 	for (let i = 0; i < file.length; i++) {
