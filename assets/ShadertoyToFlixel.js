@@ -13,29 +13,27 @@ doThing = (file) => {
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
-		if (!tocheck.includes("#define")) {
-			if (tocheck.includes("mainImage")) {
-				file[i] = file[i].replaceAll("mainImage", "main")
-				console.log("[TRACE] Replaced mainImage to main in line " + i + "!")
-			}
-			if (tocheck.includes("iChannel0")) {
-				file[i] = file[i].replaceAll("iChannel0", "bitmap")
-				console.log("[TRACE] Replaced iChannel0 to bitmap in line " + i + "!")
-			}
-			if (tocheck.includes("texture(")) {
-				file[i] = file[i].replaceAll("flixel_texture2D(", "texture(")
-				file[i] = file[i].replaceAll("texture(", "flixel_texture2D(")
-				console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
-			}
-			if (tocheck.includes("texture2D(")) {
-				file[i] = file[i].replaceAll("flixel_texture2D(", "texture2D(")
-				file[i] = file[i].replaceAll("texture2D(", "flixel_texture2D(")
-				console.log("[TRACE] Replaced texture2D to flixel_texture2D in line " + i + "!")
-			}
-			if (tocheck.includes("fragColor") && !tocheck.includes('void main(')) {
-				file[i] = file[i].replaceAll("fragColor", "gl_FragColor")
-				console.log("[TRACE] Replaced fragColor to gl_FragColor in line " + i + "!")
-			}
+		if (tocheck.includes("mainImage")) {
+			file[i] = file[i].replaceAll("mainImage", "main")
+			console.log("[TRACE] Replaced mainImage to main in line " + i + "!")
+		}
+		if (tocheck.includes("iChannel0")) {
+			file[i] = file[i].replaceAll("iChannel0", "bitmap")
+			console.log("[TRACE] Replaced iChannel0 to bitmap in line " + i + "!")
+		}
+		if (tocheck.includes("texture(")) {
+			file[i] = file[i].replaceAll("flixel_texture2D(", "texture(")
+			file[i] = file[i].replaceAll("texture(", "flixel_texture2D(")
+			console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
+		}
+		if (tocheck.includes("texture2D(")) {
+			file[i] = file[i].replaceAll("flixel_texture2D(", "texture2D(")
+			file[i] = file[i].replaceAll("texture2D(", "flixel_texture2D(")
+			console.log("[TRACE] Replaced texture2D to flixel_texture2D in line " + i + "!")
+		}
+		if (tocheck.includes("fragColor") && !tocheck.includes('void main(')) {
+			file[i] = file[i].replaceAll("fragColor", "gl_FragColor")
+			console.log("[TRACE] Replaced fragColor to gl_FragColor in line " + i + "!")
 		}
 		if (file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
