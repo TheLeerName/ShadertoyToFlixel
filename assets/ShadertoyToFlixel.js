@@ -22,8 +22,13 @@ doThing = (file) => {
 			file[i] = file[i].replaceAll("iChannel0", "bitmap")
 			console.log("[TRACE] Replaced iChannel0 to bitmap in line " + i + "!")
 		}
-		if (tocheck.includes("texture2D(")) file[i] = file[i].replaceAll("texture2D(", "texture(")
+		if (tocheck.includes("texture2D(")) {
+			file[i] = file[i].replaceAll("flixel_texture2D(", "texture2D(")
+			file[i] = file[i].replaceAll("texture2D(", "flixel_texture2D(")
+			console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
+		}
 		if (tocheck.includes("texture(")) {
+			file[i] = file[i].replaceAll("flixel_texture2D(", "texture(")
 			file[i] = file[i].replaceAll("texture(", "flixel_texture2D(")
 			console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
 		}
