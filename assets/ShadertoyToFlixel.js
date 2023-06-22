@@ -134,14 +134,16 @@ doThing = (file) => {
 	}
 
 	if (fixedMain) {
-		if (!iResolution) {
-			file.splice(voidMainLine + 1, 0, "vec2 iResolution = openfl_TextureSize;")
-			console.log("[TRACE] Added vec2 iResolution!")
-		}
+		var oldLength = file.length
 		if (!fragCoord) {
-			file.splice(voidMainLine + 1, 0, "vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;")
+			file.splice(voidMainLine + 1, 0, "\tvec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;")
 			console.log("[TRACE] Added vec2 fragCoord!")
 		}
+		if (!iResolution) {
+			file.splice(voidMainLine + 1, 0, "\tvec2 iResolution = openfl_TextureSize;")
+			console.log("[TRACE] Added vec2 iResolution!")
+		}
+		if (oldLength != file.length) file.splice(voidMainLine + 1 + (file.length - oldLength), 0, "")
 	}
 
 	if (whatever.length > 0) whatever.push("")
