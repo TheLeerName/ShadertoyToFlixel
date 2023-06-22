@@ -31,16 +31,21 @@
 		document.getElementById('inputfile').addEventListener('change', function() {
 			//console.log(this.files[0].name);
 			fileName = this.files[0].name;
+			console.log("[TRACE] Getting data from " + fileName + "...")
 			var fr = new FileReader();
 			fr.onload = function() {
 				data = fr.result;
 				//console.log(fileName, data);
 				data = doThing(data);
+				var output = fileName.substring(0, fileName.lastIndexOf("/") + 1) + 'flixel-' + fileName.substring(fileName.lastIndexOf("/") + 1);
+
+				download(data, output, 'text/plain');
+				console.log("[TRACE] Successfully saved as " + output + "!")
+
 				document.getElementById('finishlog').style.opacity = 1;
 				setTimeout(() => {
 					document.getElementById('finishlog').style.opacity = 0;
 				}, 2000);
-				download(data, fileName.substring(0, fileName.lastIndexOf("/") + 1) + 'flixel-' + fileName.substring(fileName.lastIndexOf("/") + 1), 'text/plain');
 			}
 			fr.readAsText(this.files[0]);
 		})
