@@ -99,6 +99,11 @@ doThing = (file) => {
 		}
 
 		// finding and replacing alpha value
+		var shutup = false
+		if (alphaStr.includes("flixel_texture2D(bitmap, " + uvName + ").a")) {
+			alphaStr = alphaStr.replaceAll("flixel_texture2D(bitmap, " + uvName + ").a", "1.0")
+			shutup = true
+		}
 		var alphaValue = alphaStr.substring(alphaStr.lastIndexOf(',') + 1).trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
 		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(',')) + alphaStr.substring(alphaStr.lastIndexOf(',')).replaceAll(alphaValue, "flixel_texture2D(bitmap, " + uvName + ").a")
 
@@ -107,7 +112,7 @@ doThing = (file) => {
 		var suffix = str.substring(str.lastIndexOf(file[i])).substring(str.substring(str.lastIndexOf(file[i])).indexOf(");"))
 		str = prefix + alphaStr + suffix
 
-		console.log("[TRACE] Fixed alpha channel!")
+		if (!shutup) console.log("[TRACE] Fixed alpha channel!")
 		fixedAlpha = true
 
 		return str.split('\n')
