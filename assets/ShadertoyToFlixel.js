@@ -35,6 +35,11 @@ doThing = (file) => {
 			file[i] = file[i].replaceAll("fragColor", "gl_FragColor")
 			console.log("[TRACE] Replaced fragColor to gl_FragColor in line " + i + "!")
 		}
+		if (tocheck.includes("round(")) {
+			file[i] = file[i].replaceAll("round(", "floor(")
+			console.log("[TRACE] Replaced round to floor in line " + i + "! (round equivalent in #version 120)")
+		}
+
 		if (file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
 		if (tocheck.includes("vec2uv=")) uv = true
