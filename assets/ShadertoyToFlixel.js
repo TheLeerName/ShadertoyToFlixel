@@ -4,7 +4,6 @@ doThing = (file) => {
 	var watermark = false
 	var pragmaHeader = false
 	var iTime = false
-	var uv = false
 	var fragCoord = false
 	var iResolution = false
 
@@ -42,7 +41,6 @@ doThing = (file) => {
 
 		if (file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
-		if (tocheck.includes("vec2uv=")) uv = true
 		if (tocheck.includes("vec2fragCoord=")) fragCoord = true
 		if (tocheck.includes("vec2iResolution=")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
@@ -114,9 +112,6 @@ doThing = (file) => {
 		whatever.push("#pragma header")
 		console.log("[TRACE] Added #pragma header!")
 	}
-	if (!uv) {
-		whatever.push("vec2 uv = openfl_TextureCoordv;")
-		console.log("[TRACE] Added vec2 uv!")
 	}
 	if (!fragCoord) {
 		whatever.push("vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;")
