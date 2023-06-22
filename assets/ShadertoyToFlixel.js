@@ -12,7 +12,7 @@ doThing = (file) => {
 	var fixedMain = false
 
 	for (let i = 0; i < file.length; i++) {
-		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
+		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "") // `vec2 uv ;` => `vec2uv;`
 		if (tocheck.includes("mainImage")) {
 			file[i] = file[i].replaceAll("mainImage", "main")
 			console.log("[TRACE] Replaced mainImage to main in line " + i + "!")
@@ -41,13 +41,13 @@ doThing = (file) => {
 		if (tocheck.includes("vec2fragCoord=")) fragCoord = true
 		if (tocheck.includes("vec2iResolution=")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
-		
+
 		if (tocheck.startsWith("#undef")) {
 			file.splice(i, 1)
 			i--
 		}
 	}
-	
+
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
 		if (file[i].includes('void main('))
@@ -55,14 +55,13 @@ doThing = (file) => {
 		if (tocheck.includes('gl_FragColor=vec4('))
 			file = fixAlphaChannel(file, i);
 	}
-	
-	function fixVoidMain(file, i)
-	{
+
+	function fixVoidMain(file, i) {
 		var bracket = file[i].includes('{')
 		file[i] = 'void main()'
 		if (bracket) file[i] = file[i] + ' {'
 
-		console.log("[TRACE] Fixed void main!")
+		console.log("[TRACE] Fixed void main! (flixel not uses args in void main)")
 		fixedMain = true
 
 		return file
@@ -126,7 +125,7 @@ doThing = (file) => {
 		whatever.push("uniform float iTime;")
 		console.log("[TRACE] Added uniform float iTime!")
 	}
-	whatever.push("")
+	if (whatever.length > 0) whatever.push("")
 
 	file = whatever.concat(file)
 
