@@ -36,7 +36,7 @@ doThing = (file) => {
 			console.log("[TRACE] Replaced round to floor in line " + i + "! (floor only in #version 130 and later)")
 		}
 
-		if (file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
+		if (file[i].includes("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel") || file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
 		if (tocheck.includes("vec2fragCoord=")) fragCoord = true
 		if (tocheck.includes("vec2iResolution=")) iResolution = true
@@ -110,7 +110,7 @@ doThing = (file) => {
 	var whatever = []
 
 	if (!watermark) {
-		whatever.push("// Automatically converted with ShadertoyToFlixel.js")
+		whatever.push("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel")
 		whatever.push("")
 	}
 	if (!pragmaHeader) {
