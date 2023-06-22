@@ -9,6 +9,8 @@ doThing = (file) => {
 
 	var fixedAlpha = false
 	var fixedMain = false
+	
+	var voidMainLine = 0
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "") // `vec2 uv ;` => `vec2uv;`
@@ -25,13 +27,13 @@ doThing = (file) => {
 			file[i] = file[i].replaceAll("texture(", "flixel_texture2D(")
 			console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
 		}
-		if (tocheck.includes("fragColor") && !tocheck.includes('void main(')) {
+		if (tocheck.includes("fragColor") && (!file[i].includes('void main(') && !file[i].includes('void mainImage('))) {
 			file[i] = file[i].replaceAll("fragColor", "gl_FragColor")
 			console.log("[TRACE] Replaced fragColor to gl_FragColor in line " + i + "!")
 		}
 		if (tocheck.includes("round(")) {
 			file[i] = file[i].replaceAll("round(", "floor(")
-			console.log("[TRACE] Replaced round to floor in line " + i + "! (round equivalent in #version 120)")
+			console.log("[TRACE] Replaced round to floor in line " + i + "! (floor only in #version 130 and later)")
 		}
 
 		if (file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
@@ -48,14 +50,22 @@ doThing = (file) => {
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
+		if (tocheck.includes('gl_FragColor=vec4('))
+			file = fixAlphaChannel(file, i)
 		if (file[i].includes('void main('))
 			file = fixVoidMain(file, i)
-		if (tocheck.includes('gl_FragColor=vec4('))
-			file = fixAlphaChannel(file, i);
 	}
 
 	function fixVoidMain(file, i) {
 		var bracket = file[i].includes('{')
+		voidMainLine = i + 0
+		if (!bracket) voidMainLine++
+
+		if (!file[i].includes("out vec4 fragColor")) {
+			fixedMain = true
+			return file
+		}
+
 		file[i] = 'void main()'
 		if (bracket) file[i] = file[i] + ' {'
 
@@ -97,29 +107,33 @@ doThing = (file) => {
 
 		return str.split('\n')
 	}
-
 	var whatever = []
+
 	if (!watermark) {
 		whatever.push("// Automatically converted with ShadertoyToFlixel.js")
 		whatever.push("")
 	}
 	if (!pragmaHeader) {
 		whatever.push("#pragma header")
+		whatever.push("")
 		console.log("[TRACE] Added #pragma header!")
-	}
-	}
-	if (!fragCoord) {
-		whatever.push("vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;")
-		console.log("[TRACE] Added vec2 fragCoord!")
-	}
-	if (!iResolution) {
-		whatever.push("vec2 iResolution = openfl_TextureSize;")
-		console.log("[TRACE] Added vec2 iResolution!")
 	}
 	if (!iTime) {
 		whatever.push("uniform float iTime;")
 		console.log("[TRACE] Added uniform float iTime!")
 	}
+
+	if (fixedMain) {
+		if (!iResolution) {
+			file.splice(voidMainLine + 1, 0, "vec2 iResolution = openfl_TextureSize;")
+			console.log("[TRACE] Added vec2 iResolution!")
+		}
+		if (!fragCoord) {
+			file.splice(voidMainLine + 1, 0, "vec2 fragCoord = openfl_TextureCoordv*openfl_TextureSize;")
+			console.log("[TRACE] Added vec2 fragCoord!")
+		}
+	}
+
 	if (whatever.length > 0) whatever.push("")
 
 	file = whatever.concat(file)
