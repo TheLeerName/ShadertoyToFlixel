@@ -20,9 +20,15 @@ pls message me if it work on some other platforms!!!!!
 - i left night vision shader for you to test this script (its not mine ofc)! [NightVisionFilter.frag](https://github.com/TheLeerName/ShadertoyToFlixel/blob/main/NightVisionFilter.frag)
 
 ## What it exactly do?
-- adding flixel defines
-- fixing void mainImage
-- fixing alpha channel in `fragColor`
+- adding `#pragma header`
+- adding `fragCoord` and `iResolution`
+- adding `iTime`
+- replacing `texture`/`texture2D` to `flixel_texture2D`
+- replacing `round` to `floor`
+- replacing `iChannel0` to `bitmap`
+- replacing `fragColor` to `gl_FragColor`
+- replacing alpha value (usually `1.0`) to alpha of sprite in `gl_FragColor`
+- removing arguments from `void mainImage` and replacing it with `void main`
 
 ### What you know about rolling down in the deep?
 <img src="https://i.imgur.com/FIFZhPm.gif" width="10%"/>
