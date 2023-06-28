@@ -17,7 +17,7 @@ doThing = (file) => {
 	var fixedAlpha = false
 
 	for (let i = 0; i < file.length; i++) {
-		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "") // `vec2 uv ;` => `vec2uv;`
+		var tocheck = formatToCheck(file[i])
 		if (tocheck.includes("texture2D(")) {
 			file[i] = file[i].replaceAll("flixel_texture2D(", "texture2D(")
 			file[i] = file[i].replaceAll("texture2D(", "flixel_texture2D(")
@@ -40,13 +40,13 @@ doThing = (file) => {
 
 		if (file[i].includes("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel") || file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
-		if (file[i].includes("#define iResolution openfl_TextureSize")) iResolution = true
+		if (file[i].includes("#define iResolution openfl_TextureSize") || tocheck.includes('vec2iResolution=')) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
 		if (file[i].includes("#define iChannel0 bitmap")) iChannel0 = true
 		if (file[i].includes("uniform sampler2D iChannel1;")) iChannel1 = true
 		if (file[i].includes("uniform sampler2D iChannel2;")) iChannel2 = true
 		if (file[i].includes("uniform sampler2D iChannel3;")) iChannel3 = true
-		
+
 		if (file[i].includes("void main()")) main = true
 
 		if (tocheck.includes("textureSize(bitmap,0)")) {
@@ -61,9 +61,19 @@ doThing = (file) => {
 	}
 
 	for (let i = 0; i < file.length; i++) {
-		var tocheck = file[i].trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
+		var tocheck = formatToCheck(file[i])
 		if (tocheck.includes('gl_FragColor=vec4('))
 			file = fixAlphaChannel(file, i)
+		if (file[i].includes('void main()'))
+			file = convertVoidMainToShadertoy(file, i)
+	}
+
+	function convertVoidMainToShadertoy(file, i) {
+		if (!formatToCheck(file[i + 1]).includes('mainImage(gl_FragColor,openfl_TextureCoordv*openfl_TextureSize);')) {
+			file[i] = file[i].replaceAll('void main()', 'void mainImage(out vec4 fragColor, in vec2 fragCoord)')
+			file = file.join('\n').replaceAll('gl_FragColor', 'fragColor').split('\n')
+		}
+		return file
 	}
 
 	function fixAlphaChannel(file, i) {
@@ -90,7 +100,7 @@ doThing = (file) => {
 			alphaStr = alphaStr.replaceAll("flixel_texture2D(bitmap, " + uvName + ").a", "1.0")
 			shutup = true
 		}
-		var alphaValue = alphaStr.substring(alphaStr.lastIndexOf(',') + 1).trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
+		var alphaValue = formatToCheck(alphaStr.substring(alphaStr.lastIndexOf(',') + 1))
 		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(',')) + alphaStr.substring(alphaStr.lastIndexOf(',')).replaceAll(alphaValue, "flixel_texture2D(bitmap, " + uvName + ").a")
 
 		// adding new alpha value to shader
@@ -103,6 +113,12 @@ doThing = (file) => {
 
 		return str.split('\n')
 	}
+
+	function formatToCheck(line) {
+		// `vec2 uv ;` => `vec2uv;`
+		return line.trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
+	}
+
 	var whatever = []
 
 	// adds things in start of file
