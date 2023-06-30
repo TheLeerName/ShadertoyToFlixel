@@ -21,7 +21,7 @@ doThing = (file) => {
 		if (tocheck.includes("texture2D(")) {
 			file[i] = file[i].replaceAll("flixel_texture2D(", "texture2D(")
 			file[i] = file[i].replaceAll("texture2D(", "flixel_texture2D(")
-			console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
+			console.log("[TRACE] Replaced texture2D to flixel_texture2D in line " + i + "!")
 		}
 		if (tocheck.includes("texture(")) {
 			file[i] = file[i].replaceAll("flixel_texture2D(", "texture(")
@@ -130,6 +130,7 @@ doThing = (file) => {
 
 	if (!pragmaHeader) {
 		whatever.push("#pragma header")
+		whatever.push("vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float idk) { return flixel_texture2D(bitmap, coord); } // third argument fix")
 		console.log("[TRACE] Added #pragma header!")
 	}
 
