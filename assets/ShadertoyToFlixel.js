@@ -62,7 +62,7 @@ doThing = (file) => {
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
-		if (tocheck.includes('gl_FragColor=vec4('))
+		if (tocheck.includes('fragColor=vec4('))
 			file = fixAlphaChannel(file, i)
 		if (file[i].includes('void main()'))
 			file = convertVoidMainToShadertoy(file, i)
