@@ -22,14 +22,12 @@ pls message me if it work on some other platforms!!!!!
 ## How to convert it again to shadertoy?
 - remove `void main()` function *entirely*
 - remove lines from `#pragma header` to `uniform sampler2D iChannel3;`
-- replace `flixel_texture2D` with `texture`
 - profit!!!!!
 
 ## What it exactly do?
 - adding `#pragma header`
 - adding `iResolution` and `iTime`
-- replacing `texture`/`texture2D` to `flixel_texture2D`
-- replacing `round` to `floor`
+- adding `#define round(a) floor(a + 0.5)`
 - replacing alpha value (usually `1.0`) to alpha of sprite in `fragColor`
 - adding `void main` with calling `void mainImage` function
 
