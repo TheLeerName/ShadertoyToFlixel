@@ -3,6 +3,7 @@ doThing = (file) => {
 
 	var watermark = false
 	var pragmaHeader = false
+	var texture = false
 
 	// shadertoy variables (not all for now!!!)
 	var iResolution = false
@@ -16,31 +17,41 @@ doThing = (file) => {
 
 	var fixedAlpha = false
 
+	file = fixIdiotThirdArgumentTexture(file)
+	function fixIdiotThirdArgumentTexture(file) {
+		file = file.join('\n')
+		file = file.replaceAll('flixel_texture2D', 'texture')
+		file = file.replaceAll('texture2D', 'texture')
+		// regex is fun
+		file = file.replaceAll(
+			/texture*\W*[(]*\W*([A-Za-z0-9/*.+-]+)*\W*,*\W*([A-Za-z0-9/*.+-]+)*\W*,*\W*([A-Za-z0-9/*.+-]+)*\W*[)]/g,
+			'texture($1, $2)'
+		)
+		return file.split('\n')
+	}
+
+	file = fixTextureSize(file)
+	function fixTextureSize(file) {
+		file = file.join('\n')
+		file = file.replaceAll(
+			/textureSize*\W*[(]*\W*iChannel0*\W*,*\W*[^,]*\W*[)]/g,
+			'iResolution.xy'
+		)
+		file = file.replaceAll('iChannelResolution[0]', 'iResolution.xy')
+		return file.split('\n')
+	}
+
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
-		if (tocheck.includes("texture2D(")) {
-			file[i] = file[i].replaceAll("flixel_texture2D(", "texture2D(")
-			file[i] = file[i].replaceAll("texture2D(", "flixel_texture2D(")
-			console.log("[TRACE] Replaced texture2D to flixel_texture2D in line " + i + "!")
-		}
-		if (tocheck.includes("texture(")) {
-			file[i] = file[i].replaceAll("flixel_texture2D(", "texture(")
-			file[i] = file[i].replaceAll("texture(", "flixel_texture2D(")
-			console.log("[TRACE] Replaced texture to flixel_texture2D in line " + i + "!")
 		}
 		if (tocheck.includes("round(")) {
 			file[i] = file[i].replaceAll("round(", "floor(")
 			console.log("[TRACE] Replaced round to floor in line " + i + "! (floor only in #version 130 and later)")
-		}
 
-		if (tocheck.startsWith("#undef")) {
-			file.splice(i, 1)
-			i--
-		}
-
-		if (file[i].includes("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel") || file[i].includes("// Automatically converted with ShadertoyToFlixel.js")) watermark = true
+		if (file[i].includes("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
-		if (file[i].includes("#define iResolution openfl_TextureSize") || tocheck.includes('vec2iResolution=')) iResolution = true
+		if (file[i].includes("#define texture flixel_texture2D")) texture = true
+		if (file[i].includes("#define iResolution openfl_TextureSize")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
 		if (file[i].includes("#define iChannel0 bitmap")) iChannel0 = true
 		if (file[i].includes("uniform sampler2D iChannel1;")) iChannel1 = true
@@ -48,16 +59,6 @@ doThing = (file) => {
 		if (file[i].includes("uniform sampler2D iChannel3;")) iChannel3 = true
 
 		if (file[i].includes("void main()")) main = true
-
-		if (tocheck.includes("textureSize(bitmap,0)")) {
-			file[i] = file[i].replaceAll("textureSize(bitmap, 0)", "iResolution.xy")
-			file[i] = file[i].replaceAll("textureSize(bitmap,0)", "iResolution.xy")
-			console.log("[TRACE] Replaced textureSize(bitmap, 0) to iResolution.xy in line " + i + "!  (textureSize only in #version 130 and later)")
-		}
-		if (tocheck.includes("iChannelResolution[0]")) {
-			file[i] = file[i].replaceAll("iChannelResolution[0]", "iResolution")
-			console.log("[TRACE] Replaced iChannelResolution[0] to iResolution in line " + i + "!")
-		}
 	}
 
 	for (let i = 0; i < file.length; i++) {
@@ -85,9 +86,9 @@ doThing = (file) => {
 
 		// finding uv name
 		var uvName = "uv"
-		if (alphaStr.includes("flixel_texture2D(")) {
+		if (alphaStr.includes("texture(")) {
 			var uvName_last = uvName
-			uvName = alphaStr.substring(alphaStr.indexOf("flixel_texture2D("))
+			uvName = alphaStr.substring(alphaStr.indexOf("texture("))
 			uvName = uvName.substring(uvName.indexOf(",") + 1).trim()
 			uvName = uvName.substring(0, uvName.indexOf(")"))
 			if (uvName.includes(" ")) uvName = uvName.replaceAll(" ", "")
@@ -96,12 +97,12 @@ doThing = (file) => {
 
 		// finding and replacing alpha value
 		var shutup = false
-		if (alphaStr.includes("flixel_texture2D(bitmap, " + uvName + ").a")) {
-			alphaStr = alphaStr.replaceAll("flixel_texture2D(bitmap, " + uvName + ").a", "1.0")
+		if (alphaStr.includes("texture(iChannel0, " + uvName + ").a")) {
+			alphaStr = alphaStr.replaceAll("texture(iChannel0, " + uvName + ").a", "1.0")
 			shutup = true
 		}
 		var alphaValue = formatToCheck(alphaStr.substring(alphaStr.lastIndexOf(',') + 1))
-		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(',')) + alphaStr.substring(alphaStr.lastIndexOf(',')).replaceAll(alphaValue, "flixel_texture2D(bitmap, " + uvName + ").a")
+		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(',')) + alphaStr.substring(alphaStr.lastIndexOf(',')).replaceAll(alphaValue, "texture(iChannel0, " + uvName + ").a")
 
 		// adding new alpha value to shader
 		var prefix = str.substring(0, str.lastIndexOf(file[i]))
@@ -130,12 +131,15 @@ doThing = (file) => {
 
 	if (!pragmaHeader) {
 		whatever.push("#pragma header")
-		whatever.push("vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float idk) { return flixel_texture2D(bitmap, coord); } // third argument fix")
 		console.log("[TRACE] Added #pragma header!")
 	}
 
 	if (whatever.length > 0) whatever.push("")
 
+	if (!texture) {
+		whatever.push("#define texture flixel_texture2D")
+		console.log("[TRACE] Added texture!")
+	}
 	if (!iResolution) {
 		whatever.push("#define iResolution openfl_TextureSize")
 		console.log("[TRACE] Added iResolution!")
