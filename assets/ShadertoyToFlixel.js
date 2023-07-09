@@ -4,6 +4,7 @@ doThing = (file) => {
 	var watermark = false
 	var pragmaHeader = false
 	var texture = false
+	var round = false
 
 	// shadertoy variables (not all for now!!!)
 	var iResolution = false
@@ -43,14 +44,11 @@ doThing = (file) => {
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
-		}
-		if (tocheck.includes("round(")) {
-			file[i] = file[i].replaceAll("round(", "floor(")
-			console.log("[TRACE] Replaced round to floor in line " + i + "! (floor only in #version 130 and later)")
 
 		if (file[i].includes("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel")) watermark = true
 		if (file[i].includes("#pragma header")) pragmaHeader = true
 		if (file[i].includes("#define texture flixel_texture2D")) texture = true
+		if (file[i].includes("#define round(a) floor(a + 0.5)")) round = true
 		if (file[i].includes("#define iResolution openfl_TextureSize")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
 		if (file[i].includes("#define iChannel0 bitmap")) iChannel0 = true
@@ -136,6 +134,10 @@ doThing = (file) => {
 
 	if (whatever.length > 0) whatever.push("")
 
+	if (!round) {
+		whatever.push("#define round(a) floor(a + 0.5)")
+		console.log("[TRACE] Added round!")
+	}
 	if (!texture) {
 		whatever.push("#define texture flixel_texture2D")
 		console.log("[TRACE] Added texture!")
