@@ -25,7 +25,7 @@ doThing = (file) => {
 		file = file.replaceAll('texture2D', 'texture')
 		// regex is fun
 		file = file.replaceAll(
-			/texture*\W*[(]*\W*([A-Za-z0-9/*.+-]+)*\W*,*\W*([A-Za-z0-9/*.+-]+)*\W*,*\W*([A-Za-z0-9/*.+-]+)*\W*[)]/g,
+			/texture\s*\(\s*([A-Za-z0-9/*.+-]+)*\s*,\s*([A-Za-z0-9/*.+-]+)*\s*,\s*([A-Za-z0-9/*.+-]+)*\s*\)/g,
 			'texture($1, $2)'
 		)
 		return file.split('\n')
@@ -35,7 +35,7 @@ doThing = (file) => {
 	function fixTextureSize(file) {
 		file = file.join('\n')
 		file = file.replaceAll(
-			/textureSize*\W*[(]*\W*iChannel0*\W*,*\W*[^,]*\W*[)]/g,
+			/textureSize\s*\(\s*iChannel0\s*,\s*[A-Za-z0-9/*.+-]+\s*\)/g,
 			'iResolution.xy'
 		)
 		file = file.replaceAll('iChannelResolution[0]', 'iResolution.xy')
