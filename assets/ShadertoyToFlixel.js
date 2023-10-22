@@ -1,6 +1,36 @@
 doThing = (file) => {
 	file = file.split("\n")
 
+var megafix = `// third argument fix
+vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
+	vec4 color = texture2D(bitmap, coord, bias);
+	if (!hasTransform)
+	{
+		return color;
+	}
+	if (color.a == 0.0)
+	{
+		return vec4(0.0, 0.0, 0.0, 0.0);
+	}
+	if (!hasColorTransform)
+	{
+		return color * openfl_Alphav;
+	}
+	color = vec4(color.rgb / color.a, color.a);
+	mat4 colorMultiplier = mat4(0);
+	colorMultiplier[0][0] = openfl_ColorMultiplierv.x;
+	colorMultiplier[1][1] = openfl_ColorMultiplierv.y;
+	colorMultiplier[2][2] = openfl_ColorMultiplierv.z;
+	colorMultiplier[3][3] = openfl_ColorMultiplierv.w;
+	color = clamp(openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);
+	if (color.a > 0.0)
+	{
+		return vec4(color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);
+	}
+	return vec4(0.0, 0.0, 0.0, 0.0);
+}
+`
+
 	var watermark = false
 	var pragmaHeader = false
 	var texture = false
@@ -139,11 +169,6 @@ doThing = (file) => {
 		whatever.push("#define round(a) floor(a + 0.5)")
 		console.log("[TRACE] Added round!")
 	}
-	if (!texture) {
-		whatever.push("#define texture flixel_texture2D")
-		whatever.push("vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float idk) { return flixel_texture2D(bitmap, coord); }")
-		console.log("[TRACE] Added texture!")
-	}
 	if (!iResolution) {
 		whatever.push("#define iResolution openfl_TextureSize")
 		console.log("[TRACE] Added iResolution!")
@@ -167,6 +192,12 @@ doThing = (file) => {
 	if (!iChannel3) {
 		whatever.push("uniform sampler2D iChannel3;")
 		console.log("[TRACE] Added iChannel3!")
+	}
+	if (!texture) {
+		whatever.push("#define texture flixel_texture2D")
+		whatever.push("")
+		whatever.push(megafix)
+		console.log("[TRACE] Added texture!")
 	}
 
 	if (whatever.length > 0) whatever.push("")
