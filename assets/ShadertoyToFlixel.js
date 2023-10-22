@@ -81,7 +81,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (file[i].includes("#pragma header")) pragmaHeader = true
 		if (file[i].includes("#define texture flixel_texture2D")) texture = true
 		if (file[i].includes("#define round(a) floor(a + 0.5)")) round = true
-		if (file[i].includes("#define iResolution openfl_TextureSize")) iResolution = true
+		if (file[i].includes("#define iResolution vec3(openfl_TextureSize, 0.)")) iResolution = true
 		if (file[i].includes("uniform float iTime;")) iTime = true
 		if (file[i].includes("#define iChannel0 bitmap")) iChannel0 = true
 		if (file[i].includes("uniform sampler2D iChannel1;")) iChannel1 = true
