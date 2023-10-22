@@ -18,7 +18,8 @@ doThing = (file) => {
 
 	var fixedAlpha = false
 
-	file = fixIdiotThirdArgumentTexture(file)
+	// IF SOMEONE KNOW HOW FIX THING PLS LET ME KNOW
+	//file = fixIdiotThirdArgumentTexture(file)
 	function fixIdiotThirdArgumentTexture(file) {
 		file = file.join('\n')
 		file = file.replaceAll('flixel_texture2D', 'texture')
@@ -140,6 +141,7 @@ doThing = (file) => {
 	}
 	if (!texture) {
 		whatever.push("#define texture flixel_texture2D")
+		whatever.push("vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float idk) { return flixel_texture2D(bitmap, coord); }")
 		console.log("[TRACE] Added texture!")
 	}
 	if (!iResolution) {
