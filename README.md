@@ -21,13 +21,13 @@ pls message me if it work on some other platforms!!!!!
 
 ## How to convert it again to shadertoy?
 - remove `void main()` function *entirely*
-- remove lines from `#pragma header` to `uniform sampler2D iChannel3;`
+- remove lines from `#pragma header` to `uniform vec4 iDate;`
 - profit!!!!!
 
 ## What it exactly do?
 - adding `#pragma header`
-- adding `iResolution` and `iTime`
-- adding `#define round(a) floor(a + 0.5)`
+- adding variables from shadertoy like `iResolution` and `iTime`
+- adding additional `flixel_texture2D` function with three arguments to use `bias` argument
 - replacing alpha value (usually `1.0`) to alpha of sprite in `fragColor`
 - adding `void main` with calling `void mainImage` function
 

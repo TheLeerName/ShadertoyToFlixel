@@ -9,46 +9,80 @@
 			height: 100%;
 			overflow: hidden;
 		}
+		.buttons {
+			width: 37.25%;
+			font-size:30px;
+		}
 		</style>
-		<a href="https://github.com/TheLeerName/ShadertoyToFlixel">
-			<img style="position:absolute;height:169px;width:169px;" src="assets/images/github-mark.png"/>
-		</a>
 	</head>
 	<body>
-		<h1 style="font-family:verdana;text-align:center;">Shadertoy to Flixel</h1>
-		<p style="text-align:center;">
-			<input type="file" id="inputfile" accept=".frag"/>
-		</p>
-		<h4 style="font-family:verdana;text-align:center;">Do Ctrl+Shift+I and open Console tab to see logs!</h4>
-		<h4 style="font-family:verdana;text-align:center;opacity:0;" id="finishlog">Successfully converted!</h4>
+		<div style="font-family:verdana;text-align:center;">
+			<h1>Shadertoy to Flixel
+				<a href="https://github.com/TheLeerName/ShadertoyToFlixel">
+					<img style="width:28px;height:28px;" src="assets/images/github-mark.png"/>
+				</a>
+			</h1>
+			<p>
+				<input id="coolinputfile" type="file" accept=".frag"/>
+			</p>
+			<textarea id="cooltextarea" style="font-size:12px;width:75%;height:50%;"></textarea>
+			<div>
+				<input id="coolbuttonstart" class="buttons" type="button" value="Start converting">
+				<input id="coolbuttondownload" class="buttons" type="button" value="Download">
+			</div>
+			<h3><a style="text-decoration: none;" href="https://i.imgur.com/LCGvaTd.png">How to use?</a></h3>
+			<h4>Do Ctrl+Shift+I and open Console tab to see logs!</h4>
+		</div>
 	</body>
 
 	<script type="text/javascript" src="assets/ShadertoyToFlixel.js"></script>
 	<script>
-		var exports = {};
-		var fileName = null;
-		var data = null;
-		document.getElementById('inputfile').addEventListener('change', function() {
-			//console.log(this.files[0].name);
-			fileName = this.files[0].name;
-			console.log("[TRACE] Getting data from " + fileName + "...")
+		var cbs = document.getElementById('coolbuttonstart');
+		var cbd = document.getElementById('coolbuttondownload');
+		var cta = document.getElementById('cooltextarea');
+		var cif = document.getElementById('coolinputfile');
+
+		cta.placeholder = 'Paste shader content from shadertoy here...\nOr upload .frag file above';
+
+		console.log(`[TRACE] Good ${getdaypart()}, user! Paste shader content, click start converting and download the shader as always`)
+
+		cif.onchange = function() {
+			console.log("[TRACE] Getting data from " + this.files[0].name + "...")
 			var fr = new FileReader();
 			fr.onload = function() {
-				data = fr.result;
-				//console.log(fileName, data);
-				data = doThing(data);
-				var output = fileName.substring(0, fileName.lastIndexOf("/") + 1) + 'flixel-' + fileName.substring(fileName.lastIndexOf("/") + 1);
-
-				download(data, output, 'text/plain');
-				console.log("[TRACE] Successfully saved as " + output + "!")
-
-				document.getElementById('finishlog').style.opacity = 1;
-				setTimeout(() => {
-					document.getElementById('finishlog').style.opacity = 0;
-				}, 2000);
+				cta.value = fr.result;
 			}
 			fr.readAsText(this.files[0]);
-		})
+		}
+
+		cbs.onclick = function() {
+			cbs.setAttribute('disabled', '');
+			cbs.value = 'Successfully converted!';
+
+			cta.value = doThing(cta.value);
+			console.log("[TRACE] Successfully converted!")
+
+			setTimeout(() => {
+				cbs.removeAttribute('disabled');
+				cbs.value = 'Start converting';
+			}, 2000);
+		}
+
+		cbd.onclick = function() {
+			download(cta.value, 'shader.frag', 'text/plain')
+			console.log("[TRACE] Successfully saved as shader.frag!")
+		}
+
+		function getdaypart() {
+			var hours = new Date().getHours();
+			if (hours >= 18)
+				return 'evening';
+			else if (hours >= 6)
+				return 'morning';
+			else if (hours >= 11)
+				return 'day';
+			return 'night';
+		}
 
 		function download(content, filename, contentType) {
 			if(!contentType) contentType = 'application/octet-stream';
