@@ -28,8 +28,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		return vec4(color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);
 	}
 	return vec4(0.0, 0.0, 0.0, 0.0);
-}
-`
+}`
 
 	var watermark = false
 	var pragmaHeader = false
@@ -43,6 +42,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	var iChannel1 = false
 	var iChannel2 = false
 	var iChannel3 = false
+	var notupdatingvars = false
 
 	var main = false
 
@@ -62,7 +62,8 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		return file.split('\n')
 	}
 
-	file = fixTextureSize(file)
+	// not used
+	//file = fixTextureSize(file)
 	function fixTextureSize(file) {
 		file = file.join('\n')
 		file = file.replaceAll(
@@ -86,6 +87,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (file[i].includes("uniform sampler2D iChannel1;")) iChannel1 = true
 		if (file[i].includes("uniform sampler2D iChannel2;")) iChannel2 = true
 		if (file[i].includes("uniform sampler2D iChannel3;")) iChannel3 = true
+		if (file[i].includes("uniform float iTimeDelta;")) notupdatingvars = true
 
 		if (file[i].includes("void main()")) main = true
 	}
@@ -170,7 +172,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		console.log("[TRACE] Added round!")
 	}
 	if (!iResolution) {
-		whatever.push("#define iResolution openfl_TextureSize")
+		whatever.push("#define iResolution vec3(openfl_TextureSize, 0.)")
 		console.log("[TRACE] Added iResolution!")
 	}
 	if (!iTime) {
@@ -198,6 +200,17 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		whatever.push("")
 		whatever.push(megafix)
 		console.log("[TRACE] Added texture!")
+	}
+	if (!notupdatingvars) {
+		whatever.push("")
+		whatever.push("// variables which is empty, they need just to avoid crashing shader")
+		whatever.push("uniform float iTimeDelta;")
+		whatever.push("uniform float iFrameRate;")
+		whatever.push("uniform int iFrame;")
+		whatever.push("#define iChannelTime float[4](iTime, 0., 0., 0.)")
+		whatever.push("#define iChannelResolution vec3[4](iResolution, vec3(0.), vec3(0.), vec3(0.))")
+		whatever.push("uniform vec4 iMouse;")
+		whatever.push("uniform vec4 iDate;")
 	}
 
 	if (whatever.length > 0) whatever.push("")
