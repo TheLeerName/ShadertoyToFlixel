@@ -5,6 +5,10 @@ node.js script which converts fragment source (.frag) glsl shaders from [Shadert
 
 # [WEB VERSION](https://theleername.github.io/ShadertoyToFlixel/)
 
+## Known issues
+- Shader is upside down => try to find line looks like this `uv.y = 1.0 - uv.y;` and remove it
+- **If not helped pls ask me in issues here or my discord**
+
 ## Supports shaders with
 - #version 100 / 110 / 120 / 130
 - no sound channels
