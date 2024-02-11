@@ -11,7 +11,7 @@ node.js script which converts fragment source (.frag) glsl shaders from [Shadert
 
 ## Supports shaders with
 - #version 100 / 110 / 120 / 130
-- no sound channels
+- only `Image` tab (can be with `Common` too, just copy code from here to `Image`)
 
 ### Converted shader supports Windows, Android, Linux (?)
 pls message me if it work on some other platforms!!!!!
