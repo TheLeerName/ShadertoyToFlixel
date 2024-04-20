@@ -1,4 +1,5 @@
 doThing = (file) => {
+	file = file.replaceAll('highp', '')
 	file = file.split("\n")
 
 var megafix = `// third argument fix
