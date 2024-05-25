@@ -1,5 +1,14 @@
 doThing = (file) => {
+	// i heard it breaks some shaders
+	file = file.replaceAll('highp ', '')
 	file = file.replaceAll('highp', '')
+
+	// we need to remove some unusual characters
+	// openfl shaders hates them lol
+	for (let i = 0; i < file.length; i++) if (file.charCodeAt(i) > 126) {
+		file = file.substring(0, i) + file.substring(i + 1)
+	}
+
 	file = file.split("\n")
 
 var megafix = `// third argument fix
