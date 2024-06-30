@@ -106,7 +106,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
-		if (fixAlphaChannel && tocheck.includes('fragColor=vec4('))
+		if (doAlphaChannel && tocheck.includes('fragColor=vec4('))
 			file = fixAlphaChannel(file, i)
 		if (file[i].includes('void main()'))
 			file = convertVoidMainToShadertoy(file, i)
