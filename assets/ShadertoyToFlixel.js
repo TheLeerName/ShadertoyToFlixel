@@ -2,6 +2,8 @@ doThing = (file) => {
 	// i heard it breaks some shaders
 	file = file.replaceAll('highp ', '')
 	file = file.replaceAll('highp', '')
+	
+	var doAlphaChannel = file.includes('uv')
 
 	// we need to remove some unusual characters
 	// openfl shaders hates them lol
@@ -104,7 +106,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
-		if (tocheck.includes('fragColor=vec4('))
+		if (fixAlphaChannel && tocheck.includes('fragColor=vec4('))
 			file = fixAlphaChannel(file, i)
 		if (file[i].includes('void main()'))
 			file = convertVoidMainToShadertoy(file, i)
