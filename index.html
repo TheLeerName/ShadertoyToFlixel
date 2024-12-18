@@ -2,99 +2,34 @@
 	<head>
 		<meta charset="UTF-8">
 		<title>Shadertoy To Flixel</title>
-		<style>
-		html {
-			background: url('https://www.shadertoy.com/img/themes/classic/background.jpg') no-repeat center center fixed;
-			background-size: cover;
-			height: 100%;
-			overflow: hidden;
-		}
-		.buttons {
-			width: 37.25%;
-			font-size:30px;
-		}
-		</style>
+		<link rel="stylesheet" type="text/css" media="screen" href="index.css">
 	</head>
 	<body>
-		<div style="font-family:verdana;text-align:center;">
-			<h1>Shadertoy to Flixel
-				<a href="https://github.com/TheLeerName/ShadertoyToFlixel">
-					<img style="width:28px;height:28px;" src="assets/images/github-mark.png"/>
-				</a>
-			</h1>
-			<p>
-				<input id="coolinputfile" type="file" accept=".frag"/>
-			</p>
-			<textarea id="cooltextarea" style="font-size:12px;width:75%;height:50%;"></textarea>
-			<div>
-				<input id="coolbuttonstart" class="buttons" type="button" value="Start converting">
-				<input id="coolbuttondownload" class="buttons" type="button" value="Download">
+		<h1 class="title">Shadertoy to Flixel
+			<a href="https://github.com/TheLeerName/ShadertoyToFlixel">
+				<img class="github-icon" src="assets/images/github-mark.png"/>
+			</a>
+		</h1>
+		<div class="div-one">
+			<div style="display:flex;width:100%;justify-content:space-between;">
+				<h2 class="div-label">Shader code</h2>
+				<input class="inputfile" id="coolinputfile" type="file" accept=".frag,.txt"/>
 			</div>
-			<h3><a style="text-decoration: none;" href="https://i.imgur.com/LCGvaTd.png">How to use?</a></h3>
-			<h4>Do Ctrl+Shift+I and open Console tab to see logs!</h4>
+			<textarea class="textarea" id="cooltextarea"></textarea>
+			<div class="div-buttons">
+				<input class="div-buttons-button" style="margin-right:0.5vw;" id="coolbuttonstart" type="button" value="Start converting">
+				<input class="div-buttons-button" id="coolbuttondownload" type="button" value="Download">
+			</div>
+		</div>
+		<div class="div-two">
+			<h2 class="div-label">Logs</h2>
+			<div class="textarea" id="logarea"></div>
+			<div class="div-buttons">
+				<input class="div-buttons-button" type="button" value="Clear logs" onclick="clearLogs()">
+			</div>
 		</div>
 	</body>
 
 	<script type="text/javascript" src="assets/ShadertoyToFlixel.js"></script>
-	<script>
-		var cbs = document.getElementById('coolbuttonstart');
-		var cbd = document.getElementById('coolbuttondownload');
-		var cta = document.getElementById('cooltextarea');
-		var cif = document.getElementById('coolinputfile');
-
-		cta.placeholder = 'Paste shader content from shadertoy here...\nOr upload .frag file above';
-
-		console.log(`[TRACE] Good ${getdaypart()}, user! Paste shader content, click start converting and download the shader as always`)
-
-		cif.onchange = function() {
-			console.log("[TRACE] Getting data from " + this.files[0].name + "...")
-			var fr = new FileReader();
-			fr.onload = function() {
-				cta.value = fr.result;
-			}
-			fr.readAsText(this.files[0]);
-		}
-
-		cbs.onclick = function() {
-			cbs.setAttribute('disabled', '');
-			cbs.value = 'Successfully converted!';
-
-			cta.value = doThing(cta.value);
-			console.log("[TRACE] Successfully converted!")
-
-			setTimeout(() => {
-				cbs.removeAttribute('disabled');
-				cbs.value = 'Start converting';
-			}, 2000);
-		}
-
-		cbd.onclick = function() {
-			download(cta.value, 'shader.frag', 'text/plain')
-			console.log("[TRACE] Successfully saved as shader.frag!")
-		}
-
-		function getdaypart() {
-			var hours = new Date().getHours();
-			if (hours >= 18)
-				return 'evening';
-			else if (hours >= 6)
-				return 'morning';
-			else if (hours >= 11)
-				return 'day';
-			return 'night';
-		}
-
-		function download(content, filename, contentType) {
-			if(!contentType) contentType = 'application/octet-stream';
-			var url = window.URL.createObjectURL(new Blob([content], {'type':contentType}));
-			var a = document.createElement('a');
-			a.style.setProperty("display", "none");
-			document.body.appendChild(a);
-			a.href = url;
-			a.download = filename;
-			a.click();
-			window.URL.revokeObjectURL(url);
-			a.remove();
-		}
-	</script>
+	<script type="text/javascript" src="index.js"></script>
 </html>

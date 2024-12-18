@@ -1,4 +1,7 @@
-doThing = (file) => {
+doThing = (file, onlog, onerror) => {
+	onlog ??= console.log;
+	onerror ??= console.log;
+
 	// i heard it breaks some shaders
 	file = file.replaceAll('highp ', '')
 	file = file.replaceAll('highp', '')
@@ -135,7 +138,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 			uvName = uvName.substring(uvName.indexOf(",") + 1).trim()
 			uvName = uvName.substring(0, uvName.indexOf(")"))
 			if (uvName.includes(" ")) uvName = uvName.replaceAll(" ", "")
-			if (uvName_last != uvName) console.log("[TRACE] Found new uv name! (" + uvName + ")")
+			if (uvName_last != uvName) onlog("Found new uv name! (" + uvName + ")")
 		}
 
 		// finding and replacing alpha value
@@ -152,7 +155,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		var suffix = str.substring(str.lastIndexOf(file[i])).substring(str.substring(str.lastIndexOf(file[i])).indexOf(");"))
 		str = prefix + alphaStr + suffix
 
-		if (!shutup) console.log("[TRACE] Fixed alpha channel!")
+		if (!shutup) onlog("Fixed alpha channel!")
 		fixedAlpha = true
 
 		return str.split('\n')
@@ -174,44 +177,44 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 
 	if (!pragmaHeader) {
 		whatever.push("#pragma header")
-		console.log("[TRACE] Added #pragma header!")
+		onlog("Added #pragma header!")
 	}
 
 	if (whatever.length > 0) whatever.push("")
 
 	if (!round) {
 		whatever.push("#define round(a) floor(a + 0.5)")
-		console.log("[TRACE] Added round!")
+		onlog("Added round!")
 	}
 	if (!iResolution) {
 		whatever.push("#define iResolution vec3(openfl_TextureSize, 0.)")
-		console.log("[TRACE] Added iResolution!")
+		onlog("Added iResolution!")
 	}
 	if (!iTime) {
 		whatever.push("uniform float iTime;")
-		console.log("[TRACE] Added iTime!")
+		onlog("Added iTime!")
 	}
 	if (!iChannel0) {
 		whatever.push("#define iChannel0 bitmap")
-		console.log("[TRACE] Added iChannel0!")
+		onlog("Added iChannel0!")
 	}
 	if (!iChannel1) {
 		whatever.push("uniform sampler2D iChannel1;")
-		console.log("[TRACE] Added iChannel1!")
+		onlog("Added iChannel1!")
 	}
 	if (!iChannel2) {
 		whatever.push("uniform sampler2D iChannel2;")
-		console.log("[TRACE] Added iChannel2!")
+		onlog("Added iChannel2!")
 	}
 	if (!iChannel3) {
 		whatever.push("uniform sampler2D iChannel3;")
-		console.log("[TRACE] Added iChannel3!")
+		onlog("Added iChannel3!")
 	}
 	if (!texture) {
 		whatever.push("#define texture flixel_texture2D")
 		whatever.push("")
 		whatever.push(megafix)
-		console.log("[TRACE] Added texture!")
+		onlog("Added texture!")
 	}
 	if (!notupdatingvars) {
 		whatever.push("")
@@ -235,10 +238,10 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		file.push("void main() {")
 		file.push("\tmainImage(gl_FragColor, openfl_TextureCoordv*openfl_TextureSize);")
 		file.push("}")
-		console.log("[TRACE] Added void main!")
+		onlog("Added void main!")
 	}
 
-	if (!fixedAlpha) console.log("[ERROR] Can't fix alpha channel! Maybe it already working properly?")
+	if (!fixedAlpha) onerror("Can't fix alpha channel! Maybe it already working properly?")
 
 	return file.join('\n')
 }
