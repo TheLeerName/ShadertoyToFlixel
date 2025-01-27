@@ -16,6 +16,7 @@ doThing = (file, onlog, onerror) => {
 
 	file = file.split("\n")
 
+var megafixCheck = "vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {"
 var megafix = `// third argument fix
 vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	vec4 color = texture2D(bitmap, coord, bias);
@@ -53,6 +54,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	var iChannel3 = false
 	var notupdatingvars = false
 	var endofshadercomment = false
+	var megafixed = false;
 
 	var usesIMouse = false
 	var usesIChannel0 = false
@@ -67,6 +69,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	var usesIChannelTime = false
 	var usesIChannelResolution = false
 	var usesRound = false
+	var usesTextureThirdArgument = false
 
 	var main = false
 
@@ -98,6 +101,20 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		return file.split('\n')
 	}
 
+	function funcArgsCount(args) {
+		let total = 0;
+		let balance = 0;
+
+		for (let char of args) {
+			if (char === ',' && balance === 0) total++;
+			else if (char === '(') balance++;
+			else if (char === ')') balance--;
+		}
+
+		return total + 1;
+	}
+
+
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
 
@@ -112,6 +129,8 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (file[i].includes("uniform sampler2D iChannel2;")) iChannel2 = true
 		if (file[i].includes("uniform sampler2D iChannel3;")) iChannel3 = true
 		if (file[i].includes("// end of ShadertoyToFlixel code")) endofshadercomment = true
+		if (file[i].includes(megafixCheck)) megafixed = true
+
 		var uselessVars = [
 			"uniform float iTimeDelta;",
 			"uniform float iFrameRate;",
@@ -138,9 +157,17 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (/\biDate\b/g.test(file[i])) usesIDate = true
 		if (/\biChannelTime\b/g.test(file[i])) usesIChannelTime = true
 		if (/\biChannelResolution\b/g.test(file[i])) usesIChannelResolution = true
-		if (/\bround\(\b/g.test(file[i])) usesRound = true
+		if (/\bround\s*\(\b/g.test(file[i])) usesRound = true
+		if (/\btexture\s*\(\b/.test(file[i])) {
+			var regex = /\btexture\s*\(\s*((?:[^)(]+|\([^)(]*\))*)\s*\)/g;
+			// match[0] = texture(iChannel0, vec2(0.5, 0.5), 0.0);
+			// match[1] = iChannel0, vec2(0.5, 0.5), 0.0
 
-		console.log(/\bvoid main\s*(\s*)\b/g.test(file[i]), file[i]);
+			[...file[i].matchAll(regex)].forEach(match => {
+				var args = funcArgsCount(match[1]);
+				if(args >= 3) usesTextureThirdArgument = true;
+			});
+		}
 
 		if (/\bvoid main\s*(\s*)\b/g.test(file[i])) main = true
 	}
@@ -153,8 +180,6 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 			file = convertVoidMainToShadertoy(file, i)
 		}
 	}
-
-	console.log(file);
 
 	function convertVoidMainToShadertoy(file, i) {
 		if (!formatToCheck(file[i + 1]).includes('mainImage(gl_FragColor,openfl_TextureCoordv*openfl_TextureSize);')) {
@@ -254,8 +279,11 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	}
 	if (!texture) {
 		whatever.push("#define texture flixel_texture2D")
-		whatever.push("")
-		whatever.push(megafix)
+		if(!megafixed && usesTextureThirdArgument) {
+			whatever.push("")
+			whatever.push(megafix)
+			onlog("Added third argument fix!")
+		}
 		onlog("Added texture!")
 	}
 
