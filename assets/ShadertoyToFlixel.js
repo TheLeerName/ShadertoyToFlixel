@@ -58,6 +58,21 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	var iChannel2 = false
 	var iChannel3 = false
 	var notupdatingvars = false
+	var endofshadercomment = false
+
+	var usesIMouse = false
+	var usesIChannel0 = false
+	var usesIChannel1 = false
+	var usesIChannel2 = false
+	var usesIChannel3 = false
+	var usesITime = false
+	var usesITimeDelta = false
+	var usesIFrame = false
+	var usesIFrameRate = false
+	var usesIDate = false
+	var usesIChannelTime = false
+	var usesIChannelResolution = false
+	var usesRound = false
 
 	var main = false
 
@@ -102,23 +117,56 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (file[i].includes("uniform sampler2D iChannel1;")) iChannel1 = true
 		if (file[i].includes("uniform sampler2D iChannel2;")) iChannel2 = true
 		if (file[i].includes("uniform sampler2D iChannel3;")) iChannel3 = true
-		if (file[i].includes("uniform float iTimeDelta;")) notupdatingvars = true
+		if (file[i].includes("// end of ShadertoyToFlixel code")) endofshadercomment = true
+		var uselessVars = [
+			"uniform float iTimeDelta;",
+			"uniform float iFrameRate;",
+			"uniform int iFrame;",
+			"#define iChannelTime float[4](iTime, 0., 0., 0.)",
+			"#define iChannelResolution vec3[4](iResolution, vec3(0.), vec3(0.), vec3(0.))",
+			"uniform vec4 iMouse;",
+			"uniform vec4 iDate;",
+		];
+		notupdatingvars = true;
+		for (let i = 0; i < uselessVars.length; i++) {
+			if (!file[i].includes(uselessVars[i])) notupdatingvars = false
+		}
 
-		if (file[i].includes("void main()")) main = true
+		if (/\biTime\b/g.test(file[i])) usesITime = true
+		if (/\biChannel0\b/g.test(file[i])) usesIChannel0 = true
+		if (/\biChannel1\b/g.test(file[i])) usesIChannel1 = true
+		if (/\biChannel2\b/g.test(file[i])) usesIChannel2 = true
+		if (/\biChannel3\b/g.test(file[i])) usesIChannel3 = true
+		if (/\biMouse\b/g.test(file[i])) usesIMouse = true
+		if (/\biTimeDelta\b/g.test(file[i])) usesITimeDelta = true
+		if (/\biFrame\b/g.test(file[i])) usesIFrame = true
+		if (/\biFrameRate\b/g.test(file[i])) usesIFrameRate = true
+		if (/\biDate\b/g.test(file[i])) usesIDate = true
+		if (/\biChannelTime\b/g.test(file[i])) usesIChannelTime = true
+		if (/\biChannelResolution\b/g.test(file[i])) usesIChannelResolution = true
+		if (/\bround\(\b/g.test(file[i])) usesRound = true
+
+		console.log(/\bvoid main\s*(\s*)\b/g.test(file[i]), file[i]);
+
+		if (/\bvoid main\s*(\s*)\b/g.test(file[i])) main = true
 	}
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
 		if (doAlphaChannel && tocheck.includes('fragColor=vec4('))
 			file = fixAlphaChannel(file, i)
-		if (file[i].includes('void main()'))
+		if (/\bvoid main\s*(\s*)\b/g.test(file[i])) {
 			file = convertVoidMainToShadertoy(file, i)
+		}
 	}
+
+	console.log(file);
 
 	function convertVoidMainToShadertoy(file, i) {
 		if (!formatToCheck(file[i + 1]).includes('mainImage(gl_FragColor,openfl_TextureCoordv*openfl_TextureSize);')) {
-			file[i] = file[i].replaceAll('void main()', 'void mainImage(out vec4 fragColor, in vec2 fragCoord)')
+			file[i] = file[i].replace(/void main\s*(\s*)\b/g, 'void mainImage(out vec4 fragColor, in vec2 fragCoord)')
 			file = file.join('\n').replaceAll('gl_FragColor', 'fragColor').split('\n')
+			main = false;
 		}
 		return file
 	}
@@ -182,7 +230,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 
 	if (whatever.length > 0) whatever.push("")
 
-	if (!round) {
+	if (!round && usesRound) {
 		whatever.push("#define round(a) floor(a + 0.5)")
 		onlog("Added round!")
 	}
@@ -190,23 +238,23 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		whatever.push("#define iResolution vec3(openfl_TextureSize, 0.)")
 		onlog("Added iResolution!")
 	}
-	if (!iTime) {
+	if (!iTime && usesITime) {
 		whatever.push("uniform float iTime;")
 		onlog("Added iTime!")
 	}
-	if (!iChannel0) {
+	if (!iChannel0 && usesIChannel0) {
 		whatever.push("#define iChannel0 bitmap")
 		onlog("Added iChannel0!")
 	}
-	if (!iChannel1) {
+	if (!iChannel1 && usesIChannel1) {
 		whatever.push("uniform sampler2D iChannel1;")
 		onlog("Added iChannel1!")
 	}
-	if (!iChannel2) {
+	if (!iChannel2 && usesIChannel2) {
 		whatever.push("uniform sampler2D iChannel2;")
 		onlog("Added iChannel2!")
 	}
-	if (!iChannel3) {
+	if (!iChannel3 && usesIChannel3) {
 		whatever.push("uniform sampler2D iChannel3;")
 		onlog("Added iChannel3!")
 	}
@@ -216,16 +264,33 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		whatever.push(megafix)
 		onlog("Added texture!")
 	}
+
 	if (!notupdatingvars) {
-		whatever.push("")
-		whatever.push("// variables which is empty, they need just to avoid crashing shader")
-		whatever.push("uniform float iTimeDelta;")
-		whatever.push("uniform float iFrameRate;")
-		whatever.push("uniform int iFrame;")
-		whatever.push("#define iChannelTime float[4](iTime, 0., 0., 0.)")
-		whatever.push("#define iChannelResolution vec3[4](iResolution, vec3(0.), vec3(0.), vec3(0.))")
-		whatever.push("uniform vec4 iMouse;")
-		whatever.push("uniform vec4 iDate;")
+		var needsToAddComment = [
+			usesITimeDelta,
+			usesIFrameRate,
+			usesIFrame,
+			usesIChannelTime,
+			usesIChannelResolution,
+			usesIMouse,
+			usesIDate,
+		].filter(function(e) { return e; })
+		if (needsToAddComment.length > 0) {
+			whatever.push("")
+			whatever.push("// variables which are empty, they need just to avoid crashing shader")
+		}
+		if (usesITimeDelta) whatever.push("uniform float iTimeDelta;")
+		if (usesIFrameRate) whatever.push("uniform float iFrameRate;")
+		if (usesIFrame) whatever.push("uniform int iFrame;")
+		if (usesIChannelTime) whatever.push("#define iChannelTime float[4](iTime, 0., 0., 0.)")
+		if (usesIChannelResolution) whatever.push("#define iChannelResolution vec3[4](iResolution, vec3(0.), vec3(0.), vec3(0.))")
+		if (usesIMouse) whatever.push("uniform vec4 iMouse;")
+		if (usesIDate) whatever.push("uniform vec4 iDate;")
+	}
+
+	if (!endofshadercomment) {
+		whatever.push("// end of ShadertoyToFlixel code")
+		onlog("Added end of shader comment!")
 	}
 
 	if (whatever.length > 0) whatever.push("")
