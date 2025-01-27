@@ -5,7 +5,7 @@ doThing = (file, onlog, onerror) => {
 	// i heard it breaks some shaders
 	file = file.replaceAll('highp ', '')
 	file = file.replaceAll('highp', '')
-	
+
 	var doAlphaChannel = file.includes('uv')
 
 	// we need to remove some unusual characters
@@ -19,30 +19,24 @@ doThing = (file, onlog, onerror) => {
 var megafix = `// third argument fix
 vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	vec4 color = texture2D(bitmap, coord, bias);
-	if (!hasTransform)
-	{
+	if (!hasTransform && !openfl_HasColorTransform)
 		return color;
-	}
+
 	if (color.a == 0.0)
-	{
 		return vec4(0.0, 0.0, 0.0, 0.0);
+
+	if (openfl_HasColorTransform || hasColorTransform) {
+		color = vec4 (color.rgb / color.a, color.a);
+		vec4 mult = vec4 (openfl_ColorMultiplierv.rgb, 1.0);
+		color = clamp (openfl_ColorOffsetv + (color * mult), 0.0, 1.0);
+
+		if (color.a == 0.0)
+			return vec4 (0.0, 0.0, 0.0, 0.0);
+
+		return vec4 (color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);
 	}
-	if (!hasColorTransform)
-	{
-		return color * openfl_Alphav;
-	}
-	color = vec4(color.rgb / color.a, color.a);
-	mat4 colorMultiplier = mat4(0);
-	colorMultiplier[0][0] = openfl_ColorMultiplierv.x;
-	colorMultiplier[1][1] = openfl_ColorMultiplierv.y;
-	colorMultiplier[2][2] = openfl_ColorMultiplierv.z;
-	colorMultiplier[3][3] = openfl_ColorMultiplierv.w;
-	color = clamp(openfl_ColorOffsetv + (color * colorMultiplier), 0.0, 1.0);
-	if (color.a > 0.0)
-	{
-		return vec4(color.rgb * color.a * openfl_Alphav, color.a * openfl_Alphav);
-	}
-	return vec4(0.0, 0.0, 0.0, 0.0);
+
+	return color * openfl_Alphav;
 }`
 
 	var watermark = false
