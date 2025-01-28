@@ -24,7 +24,7 @@ pls message me if it work on some other platforms!!!!!
 
 ## How to convert it again to shadertoy?
 - remove `void main()` function *entirely*
-- remove lines from `#pragma header` to `uniform vec4 iDate;`
+- remove lines from `#pragma header` to `// end of ShadertoyToFlixel code`
 - profit!!!!!
 
 ## What it exactly do?
