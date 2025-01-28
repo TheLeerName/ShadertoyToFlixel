@@ -75,32 +75,6 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 
 	var fixedAlpha = false
 
-	// IF SOMEONE KNOW HOW FIX THING PLS LET ME KNOW
-	//file = fixIdiotThirdArgumentTexture(file)
-	function fixIdiotThirdArgumentTexture(file) {
-		file = file.join('\n')
-		file = file.replaceAll('flixel_texture2D', 'texture')
-		file = file.replaceAll('texture2D', 'texture')
-		// regex is fun
-		file = file.replaceAll(
-			/texture\s*\(\s*([A-Za-z0-9/*.+-]+)*\s*,\s*([A-Za-z0-9/*.+-]+)*\s*,\s*([A-Za-z0-9/*.+-]+)*\s*\)/g,
-			'texture($1, $2)'
-		)
-		return file.split('\n')
-	}
-
-	// not used
-	//file = fixTextureSize(file)
-	function fixTextureSize(file) {
-		file = file.join('\n')
-		file = file.replaceAll(
-			/textureSize\s*\(\s*iChannel0\s*,\s*[A-Za-z0-9/*.+-]+\s*\)/g,
-			'iResolution.xy'
-		)
-		file = file.replaceAll('iChannelResolution[0]', 'iResolution.xy')
-		return file.split('\n')
-	}
-
 	function funcArgsCount(args) {
 		let total = 0;
 		let balance = 0;
