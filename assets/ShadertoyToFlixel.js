@@ -149,7 +149,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (/\biChannel0\b/.test(file[i])) usesIChannel0 = true
 		if (/\biChannel1\b/.test(file[i])) usesIChannel1 = true
 		if (/\biChannel2\b/.test(file[i])) usesIChannel2 = true
-		if (/\biChannel3\b/g.test(file[i])) usesIChannel3 = true
+		if (/\biChannel3\b/.test(file[i])) usesIChannel3 = true
 		if (/\biMouse\b/.test(file[i])) usesIMouse = true
 		if (/\biTimeDelta\b/.test(file[i])) usesITimeDelta = true
 		if (/\biFrame\b/.test(file[i])) usesIFrame = true
