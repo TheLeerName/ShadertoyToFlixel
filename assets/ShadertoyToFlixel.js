@@ -313,6 +313,7 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	}
 
 	if (!endofshadercomment) {
+		whatever.push("")
 		whatever.push("// end of ShadertoyToFlixel code")
 		onlog("Added end of shader comment!")
 	}
