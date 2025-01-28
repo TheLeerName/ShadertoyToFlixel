@@ -145,19 +145,19 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 			if (!file[i].includes(uselessVars[i])) notupdatingvars = false
 		}
 
-		if (/\biTime\b/g.test(file[i])) usesITime = true
-		if (/\biChannel0\b/g.test(file[i])) usesIChannel0 = true
-		if (/\biChannel1\b/g.test(file[i])) usesIChannel1 = true
-		if (/\biChannel2\b/g.test(file[i])) usesIChannel2 = true
+		if (/\biTime\b/.test(file[i])) usesITime = true
+		if (/\biChannel0\b/.test(file[i])) usesIChannel0 = true
+		if (/\biChannel1\b/.test(file[i])) usesIChannel1 = true
+		if (/\biChannel2\b/.test(file[i])) usesIChannel2 = true
 		if (/\biChannel3\b/g.test(file[i])) usesIChannel3 = true
-		if (/\biMouse\b/g.test(file[i])) usesIMouse = true
-		if (/\biTimeDelta\b/g.test(file[i])) usesITimeDelta = true
-		if (/\biFrame\b/g.test(file[i])) usesIFrame = true
-		if (/\biFrameRate\b/g.test(file[i])) usesIFrameRate = true
-		if (/\biDate\b/g.test(file[i])) usesIDate = true
-		if (/\biChannelTime\b/g.test(file[i])) usesIChannelTime = true
-		if (/\biChannelResolution\b/g.test(file[i])) usesIChannelResolution = true
-		if (/\bround\s*\(/g.test(file[i])) usesRound = true
+		if (/\biMouse\b/.test(file[i])) usesIMouse = true
+		if (/\biTimeDelta\b/.test(file[i])) usesITimeDelta = true
+		if (/\biFrame\b/.test(file[i])) usesIFrame = true
+		if (/\biFrameRate\b/.test(file[i])) usesIFrameRate = true
+		if (/\biDate\b/.test(file[i])) usesIDate = true
+		if (/\biChannelTime\b/.test(file[i])) usesIChannelTime = true
+		if (/\biChannelResolution\b/.test(file[i])) usesIChannelResolution = true
+		if (/\bround\s*\(/.test(file[i])) usesRound = true
 		if (/\btexture\s*\(/.test(file[i])) {
 			var regex = /\btexture\s*\(\s*((?:[^)(]+|\([^)(]*\))*)\s*\)/g;
 			// match[0] = texture(iChannel0, vec2(0.5, 0.5), 0.0);
@@ -169,14 +169,14 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 			});
 		}
 
-		if (/\bvoid main\s*(\s*)\b/g.test(file[i])) main = true
+		if (/\bvoid main\s*(\s*)\b/.test(file[i])) main = true
 	}
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
 		if (doAlphaChannel && tocheck.includes('fragColor=vec4('))
 			file = fixAlphaChannel(file, i)
-		if (/\bvoid main\s*(\s*)\b/g.test(file[i])) {
+		if (/\bvoid main\s*(\s*)\b/.test(file[i])) {
 			file = convertVoidMainToShadertoy(file, i)
 		}
 	}
