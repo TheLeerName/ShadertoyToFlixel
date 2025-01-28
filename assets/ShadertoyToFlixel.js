@@ -157,8 +157,8 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (/\biDate\b/g.test(file[i])) usesIDate = true
 		if (/\biChannelTime\b/g.test(file[i])) usesIChannelTime = true
 		if (/\biChannelResolution\b/g.test(file[i])) usesIChannelResolution = true
-		if (/\bround\s*\(\b/g.test(file[i])) usesRound = true
-		if (/\btexture\s*\(\b/.test(file[i])) {
+		if (/\bround\s*\(/g.test(file[i])) usesRound = true
+		if (/\btexture\s*\(/.test(file[i])) {
 			var regex = /\btexture\s*\(\s*((?:[^)(]+|\([^)(]*\))*)\s*\)/g;
 			// match[0] = texture(iChannel0, vec2(0.5, 0.5), 0.0);
 			// match[1] = iChannel0, vec2(0.5, 0.5), 0.0
