@@ -2,7 +2,7 @@ const fs = require('fs')
 const dialog = require('node-file-dialog').dialog
 require('./ShadertoyToFlixel.js')
 
-console.log("\n  Welcome to Shadertoy to Flixel script!");
+console.log(`\n  Welcome to Shadertoy to Flixel ${versionSTF}!`);
 console.log("\n Choose shader fragment source for converting...\n");
 
 dialog({type: 'open-file', extra: {ext: "*.frag", title: "Choose a shader fragment source file...", types: { "Shader file": '.frag'}}}).then(file => {

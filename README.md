@@ -24,7 +24,7 @@ pls message me if it work on some other platforms!!!!!
 
 ## How to convert it again to shadertoy?
 - remove `void main()` function *entirely*
-- remove lines from `#pragma header` to `// end of ShadertoyToFlixel code`
+- remove lines from start to `// end of ShadertoyToFlixel header` inclusively
 - profit!!!!!
 
 ## What it exactly do?
@@ -33,6 +33,9 @@ pls message me if it work on some other platforms!!!!!
 - adding additional `flixel_texture2D` function with three arguments to use `bias` argument
 - replacing alpha value (usually `1.0`) to alpha of sprite in `fragColor`
 - adding `void main` with calling `void mainImage` function
+
+## Special thanks
+- [NeeEoo](https://github.com/NeeEoo) - helping with regexes and optimize generated code size
 
 ### What you know about rolling down in the deep?
 <img src="https://i.imgur.com/FIFZhPm.gif" width="10%"/>

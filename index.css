@@ -22,11 +22,6 @@ body {
 	height: 48px;
 }
 
-.inputfile {
-	margin-top: 6px;
-	height: 21px;
-}
-
 .div-one {
 	display: inline-block;
 	margin-left: 0.5vw;
@@ -106,6 +101,8 @@ body {
 	height: 80.5%;
 	border-radius: 5px;
 	font-size: 17px;
+
+	transition: filter 0.5s ease-out;
 }
 
 textarea::placeholder {

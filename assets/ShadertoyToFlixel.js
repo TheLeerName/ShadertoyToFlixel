@@ -1,12 +1,10 @@
+versionSTF = "1.0.0"
 doThing = (file, onlog, onerror) => {
-	onlog ??= console.log;
-	onerror ??= console.log;
+	onlog ??= console.log
+	onerror ??= console.log
 
-	// i heard it breaks some shaders
-	file = file.replaceAll('highp ', '')
-	file = file.replaceAll('highp', '')
-
-	var doAlphaChannel = file.includes('uv')
+	// i heard highp breaks some shaders
+	file = file.replaceAll(/\bhighp\b\s?/g, '')
 
 	// we need to remove some unusual characters
 	// openfl shaders hates them lol
@@ -14,9 +12,7 @@ doThing = (file, onlog, onerror) => {
 		file = file.substring(0, i) + file.substring(i + 1)
 	}
 
-	file = file.split("\n")
 
-var megafixCheck = "vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {"
 var megafix = `// third argument fix
 vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	vec4 color = texture2D(bitmap, coord, bias);
@@ -40,272 +36,223 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 	return color * openfl_Alphav;
 }`
 
-	var watermark = false
-	var pragmaHeader = false
-	var texture = false
-	var round = false
+	// required to add
+	var ignoreWatermark = true
+	var ignorePragmaHeader = true
 
-	// shadertoy variables (not all for now!!!)
-	var iResolution = false
-	var iTime = false
-	var iChannel0 = false
-	var iChannel1 = false
-	var iChannel2 = false
-	var iChannel3 = false
-	var notupdatingvars = false
-	var endofshadercomment = false
-	var megafixed = false;
+	// will be added if it was used it shader
+	var ignoreIResolution = true
+	var ignoreITime = true
+	var ignoreIChannel0 = true
+	var ignoreIChannel1 = true
+	var ignoreIChannel2 = true
+	var ignoreIChannel3 = true
+	var ignoreRound = true
+	var ignoreTexture = true
+	var ignoreTextureThirdArgumentFix = true
 
-	var usesIMouse = false
-	var usesIChannel0 = false
-	var usesIChannel1 = false
-	var usesIChannel2 = false
-	var usesIChannel3 = false
-	var usesITime = false
-	var usesITimeDelta = false
-	var usesIFrame = false
-	var usesIFrameRate = false
-	var usesIDate = false
-	var usesIChannelTime = false
-	var usesIChannelResolution = false
-	var usesRound = false
-	var usesTextureThirdArgument = false
+	// additional shadertoy variables which is empty to not crash the shader & will be added if it was used it shader
+	var ignoreITimeDelta = true
+	var ignoreIFrameRate = true
+	var ignoreIFrame = true
+	var ignoreIMouse = true
+	var ignoreIDate = true
+	var ignoreIChannelTime = true
+	var ignoreIChannelResolution = true
 
-	var main = false
-
+	// misc
+	var ignoreShaderHeaderEnd = true
+	var ignoreMain = true
 	var fixedAlpha = false
 
+	// hi NeeEoo
+	// thx again, i remembered about this repo cuz of ur pr <3
 	function funcArgsCount(args) {
-		let total = 0;
-		let balance = 0;
+		let total = 0
+		let balance = 0
 
 		for (let char of args) {
-			if (char === ',' && balance === 0) total++;
-			else if (char === '(') balance++;
-			else if (char === ')') balance--;
+			if (char === ',' && balance === 0) total++
+			else if (char === '(') balance++
+			else if (char === ')') balance--
 		}
 
-		return total + 1;
+		return total + 1
 	}
 
+	function fixAlphaChannel() {
+		// /\bvoid\s+mainImage\s*\(\s*out\s+vec4\s+([_a-z]\w*)\s*,.*vec2\s+([_a-z]\w*)\s*\)/
+		let mainImage = /\bvoid\s+mainImage\s*\(\s*out\s+vec4\s+([_a-z]\w*)\s*,.*vec2\s+([_a-z]\w*)\s*\)/
+		let mainImage_match = file.match(mainImage)
+		let fragColorName = mainImage_match?.[1] ?? 'fragColor'
+		let fragCoordName = mainImage_match?.[2] ?? 'fragCoord'
 
-	for (let i = 0; i < file.length; i++) {
-		var tocheck = formatToCheck(file[i])
-
-		if (file[i].includes("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel")) watermark = true
-		if (file[i].includes("#pragma header")) pragmaHeader = true
-		if (file[i].includes("#define texture flixel_texture2D")) texture = true
-		if (file[i].includes("#define round(a) floor(a + 0.5)")) round = true
-		if (file[i].includes("#define iResolution vec3(openfl_TextureSize, 0.)")) iResolution = true
-		if (file[i].includes("uniform float iTime;")) iTime = true
-		if (file[i].includes("#define iChannel0 bitmap")) iChannel0 = true
-		if (file[i].includes("uniform sampler2D iChannel1;")) iChannel1 = true
-		if (file[i].includes("uniform sampler2D iChannel2;")) iChannel2 = true
-		if (file[i].includes("uniform sampler2D iChannel3;")) iChannel3 = true
-		if (file[i].includes("// end of ShadertoyToFlixel code")) endofshadercomment = true
-		if (file[i].includes(megafixCheck)) megafixed = true
-
-		var uselessVars = [
-			"uniform float iTimeDelta;",
-			"uniform float iFrameRate;",
-			"uniform int iFrame;",
-			"#define iChannelTime float[4](iTime, 0., 0., 0.)",
-			"#define iChannelResolution vec3[4](iResolution, vec3(0.), vec3(0.), vec3(0.))",
-			"uniform vec4 iMouse;",
-			"uniform vec4 iDate;",
-		];
-		notupdatingvars = true;
-		for (let i = 0; i < uselessVars.length; i++) {
-			if (!file[i].includes(uselessVars[i])) notupdatingvars = false
-		}
-
-		if (/\biTime\b/.test(file[i])) usesITime = true
-		if (/\biChannel0\b/.test(file[i])) usesIChannel0 = true
-		if (/\biChannel1\b/.test(file[i])) usesIChannel1 = true
-		if (/\biChannel2\b/.test(file[i])) usesIChannel2 = true
-		if (/\biChannel3\b/.test(file[i])) usesIChannel3 = true
-		if (/\biMouse\b/.test(file[i])) usesIMouse = true
-		if (/\biTimeDelta\b/.test(file[i])) usesITimeDelta = true
-		if (/\biFrame\b/.test(file[i])) usesIFrame = true
-		if (/\biFrameRate\b/.test(file[i])) usesIFrameRate = true
-		if (/\biDate\b/.test(file[i])) usesIDate = true
-		if (/\biChannelTime\b/.test(file[i])) usesIChannelTime = true
-		if (/\biChannelResolution\b/.test(file[i])) usesIChannelResolution = true
-		if (/\bround\s*\(/.test(file[i])) usesRound = true
-		if (/\btexture\s*\(/.test(file[i])) {
-			var regex = /\btexture\s*\(([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*)\)/g;
-			// match[0] = texture(iChannel0, vec2(example(example(0.5)), 0.5), 0.0)
-			// match[1] = iChannel0, vec2(example(example(0.5)), 0.5), 0.0
-
-			[...file[i].matchAll(regex)].forEach(match => {
-				if(funcArgsCount(match[1]) >= 3) {
-					usesTextureThirdArgument = true;
-					return;
+		// Method 1: Gets alpha in used texture() method for rgb channels
+		if (!fixedAlpha) {
+			// /\bfragColor\b\s*=\s*vec4\s*\(\s*([_a-z]\w*)\s*,\s*([-0-9.]*)\s*\)/s
+			let vec4Variable = new RegExp(`\\b${fragColorName}\\b\\s*=\\s*vec4\\s*\\(\\s*([_a-z]\\w*)\\s*,\\s*([-0-9.]*)\\s*\\)`, 's')
+			let vec4Variable_match = file.match(vec4Variable)
+			if (vec4Variable_match != null) {
+				// /\bvoid\s+mainImage\s*\(\s*out\s+vec4\s+(?:[_a-z]\w*)\s*,\s*in\s+vec2\s+(?:[_a-z]\w*)\s*\)\s*{.*?vec3\s+c\s*=\s*texture\s*\(\s*([_a-z]\w*)\s*,\s*([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*)\s*\)/s
+				let vec4Variable_fromTexture_match = file.match(new RegExp(`\\bvoid\\s+mainImage\\s*\\(\\s*out\\s+vec4\\s+(?:[_a-z]\\w*)\\s*,\\s*in\\s+vec2\\s+(?:[_a-z]\\w*)\\s*\\)\\s*{.*?vec3\\s+${vec4Variable_match[1]}\\s*=\\s*texture\\s*\\(\\s*([_a-z]\\w*)\\s*,\\s*([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\s*\\)`, `s`))
+				if (vec4Variable_fromTexture_match != null) {
+					file = file.replace(vec4Variable, `${fragColorName} = vec4($1, texture(${vec4Variable_fromTexture_match[1]}, ${vec4Variable_fromTexture_match[2]}).a)`)
+					fixedAlpha = true
 				}
-			});
+			}
 		}
 
-		if (/\bvoid\s+main\s*\(\s*\)/.test(file[i])) main = true
-	}
-
-	for (let i = 0; i < file.length; i++) {
-		var tocheck = formatToCheck(file[i])
-		if (doAlphaChannel && tocheck.includes('fragColor=vec4('))
-			file = fixAlphaChannel(file, i)
-		if (/\bvoid\s+main\s*\(\s*\)/.test(file[i])) {
-			file = convertVoidMainToShadertoy(file, i)
-		}
-	}
-
-	function convertVoidMainToShadertoy(file, i) {
-		if (!formatToCheck(file[i + 1]).includes('mainImage(gl_FragColor,openfl_TextureCoordv*openfl_TextureSize);')) {
-			file[i] = file[i].replace(/\bvoid\s+main\s*\(\s*\)/, 'void mainImage(out vec4 fragColor, in vec2 fragCoord)')
-			file = file.join('\n').replaceAll('gl_FragColor', 'fragColor').split('\n')
-			main = false;
-		}
-		return file
-	}
-
-	function fixAlphaChannel(file, i) {
-		// doing vars
-		var str = file.join('\n')
-		var alphaStr = str
-		alphaStr = alphaStr.substring(alphaStr.lastIndexOf(file[i]))
-		alphaStr = alphaStr.substring(0, alphaStr.indexOf(");"))
-
-		// finding uv name
-		var uvName = "uv"
-		if (alphaStr.includes("texture(")) {
-			var uvName_last = uvName
-			uvName = alphaStr.substring(alphaStr.indexOf("texture("))
-			uvName = uvName.substring(uvName.indexOf(",") + 1).trim()
-			uvName = uvName.substring(0, uvName.indexOf(")"))
-			if (uvName.includes(" ")) uvName = uvName.replaceAll(" ", "")
-			if (uvName_last != uvName) onlog("Found new uv name! (" + uvName + ")")
+		// Method 2: Gets alpha from fragCoord and iResolution division for situations where fragColor is setted from vec4 with 4 entries
+		if (!fixedAlpha) {
+			// /\bfragColor\b\s*=\s*vec4\s*\(\s*([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*)\s*,([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*),([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*),\s*([\w\d_.]*)\s*\)/s
+			let fourEntries = new RegExp(`\\b${fragColorName}\\b\\s*=\\s*vec4\\s*\\(\\s*([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\s*,([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*),([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*),\\s*([\\w\\d_.]*)\\s*\\)`, 's')
+			let prevLength = file.length
+			file = file.replace(fourEntries, `${fragColorName} = vec4($1, $2, $3, texture(iChannel0, ${fragCoordName} / iResolution.xy).a)`)
+			if (prevLength != file.length) fixedAlpha = true
 		}
 
-		// finding and replacing alpha value
-		var shutup = false
-		if (alphaStr.includes("texture(iChannel0, " + uvName + ").a")) {
-			alphaStr = alphaStr.replaceAll("texture(iChannel0, " + uvName + ").a", "1.0")
-			shutup = true
+		// Method 3: Gets alpha from fragCoord and iResolution division for situations where fragColor is setted from vec4 with 2 entries
+		if (!fixedAlpha) {
+			// /\bfragColor\b\s*=\s*vec4\s*\(\s*([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*)\s*,\s*([\w\d_.]*)\s*\)/s
+			let twoEntries = new RegExp(`\\b${fragColorName}\\b\\s*=\\s*vec4\\s*\\(\\s*([^)(]*(?:\\([^)(]*(?:\\([^)(]*(?:\\([^)(]*\\)[^)(]*)*\\)[^)(]*)*\\)[^)(]*)*)\\s*,\\s*([\\w\\d_.]*)\\s*\\)`, 's')
+			let prevLength = file.length
+			file = file.replace(twoEntries, `${fragColorName} = vec4($1, texture(iChannel0, ${fragCoordName} / iResolution.xy).a)`)
+			if (prevLength != file.length) fixedAlpha = true
 		}
-		var alphaValue = formatToCheck(alphaStr.substring(alphaStr.lastIndexOf(',') + 1))
-		alphaStr = alphaStr.substring(0, alphaStr.lastIndexOf(',')) + alphaStr.substring(alphaStr.lastIndexOf(',')).replaceAll(alphaValue, "texture(iChannel0, " + uvName + ").a")
-
-		// adding new alpha value to shader
-		var prefix = str.substring(0, str.lastIndexOf(file[i]))
-		var suffix = str.substring(str.lastIndexOf(file[i])).substring(str.substring(str.lastIndexOf(file[i])).indexOf(");"))
-		str = prefix + alphaStr + suffix
-
-		if (!shutup) onlog("Fixed alpha channel!")
-		fixedAlpha = true
-
-		return str.split('\n')
 	}
+	fixAlphaChannel()
 
-	function formatToCheck(line) {
-		// `vec2 uv ;` => `vec2uv;`
-		return line.trim().replaceAll(" ", "").replaceAll("\t", "").replaceAll("\r", "")
-	}
+	// required to add
+	ignoreWatermark = /^.*\/\/.*https:\/\/github\.com\/TheLeerName\/ShadertoyToFlixel.*$/m.test(file)
+	ignorePragmaHeader = file.includes("#pragma header")
 
-	var whatever = []
+	// will be added if it was used it shader
+	ignoreIResolution = /^.*#define\s+iResolution\s+vec3\s*\(\s*openfl_TextureSize\s*,.*0.*\)\s*$/m.test(file) || !/\biResolution\b/.test(file)
+	ignoreITime = /\buniform\s+float\s+iTime\b/.test(file) || !/\biTime\b/.test(file)
+	ignoreIChannel0 = /^.*#define\s+iChannel0\s+bitmap\b\s*$/m.test(file) || !/\biChannel0\b/.test(file)
+	ignoreIChannel1 = /\buniform\s+sampler2D\s+iChannel1\b/.test(file) || !/\biChannel1\b/.test(file)
+	ignoreIChannel2 = /\buniform\s+sampler2D\s+iChannel2\b/.test(file) || !/\biChannel2\b/.test(file)
+	ignoreIChannel3 = /\buniform\s+sampler2D\s+iChannel3\b/.test(file) || !/\biChannel3\b/.test(file)
+	ignoreRound = /^.*#define\s+round\(\s*a\s*\)\s+floor\s*\(\s*a\s*\+.*\.5\)\s*$/m.test(file) || !/\bround\s*\(/.test(file)
+	ignoreTexture = /^.*#define\s+texture\s+flixel_texture2D\b\s*$/m.test(file) || !/\btexture\b/.test(file)
+
+	ignoreTextureThirdArgumentFix = ignoreTexture || /\bvec4\s+flixel_texture2D\s*\(\s*sampler2D\s+[^\s]*\s*,\s*vec2\s+[^\s]*\s*,\s*float\s+[^\s]*\s*\)/.test(file) || [...file.matchAll(/\btexture\s*\(([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*)\)/g)].find(match => { if(funcArgsCount(match[1]) >= 3) return true; }) == null
+	// match[0] = texture(iChannel0, vec2(example(example(0.5)), 0.5), 0.0)
+	// match[1] = iChannel0, vec2(example(example(0.5)), 0.5), 0.0
+
+	// additional shadertoy variables which is empty to not crash the shader & will be added if it was used it shader
+	ignoreITimeDelta = /\buniform\s+float\s+iTimeDelta\b/.test(file) || !/\biTimeDelta\b/.test(file)
+	ignoreIFrameRate = /\buniform\s+float\s+iFrameRate\b/.test(file) || !/\biFrameRate\b/.test(file)
+	ignoreIFrame = /\buniform\s+int\s+iFrame\b/.test(file) || !/\biFrame\b/.test(file)
+	ignoreIMouse = /\buniform\s+vec4\s+iMouse\b/.test(file) || !/\biMouse\b/.test(file)
+	ignoreIDate = /\buniform\s+vec4\s+iDate\b/.test(file) || !/\biDate\b/.test(file)
+	ignoreIChannelTime = /^.*#define\s+iChannelTime\s+float\s*\[\s*4\s*\]\s*\(.*\)\s*$/m.test(file) || !/\biChannelTime\b/.test(file)
+	ignoreIChannelResolution = /^.*#define\s+iChannelResolution\s+vec3\s*\[\s*4\s*\]\s*\(.*\)\s*$/m.test(file) || !/\biChannelResolution\b/.test(file)
+
+	// misc
+	ignoreShaderHeaderEnd = /^.*\/\/\s*end\s+of\s+ShadertoyToFlixel\s+header\b\s*$/m.test(file)
+	ignoreMain = /\bvoid\s+main\s*\(\s*\)\s*{\s*mainImage\(\s*gl_FragColor\s*,\s*openfl_TextureCoordv\s*\*\s*openfl_TextureSize\s*\)\s*;\s*}/.test(file)
+
+	var shaderHeader = ""
 
 	// adds things in start of file
-	if (!watermark) {
-		whatever.push("// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel")
-	}
+	if (!ignoreWatermark)
+		shaderHeader += "// Automatically converted with https://github.com/TheLeerName/ShadertoyToFlixel\n"
 
-	if (whatever.length > 0) whatever.push("")
+	if (shaderHeader.length > 0) shaderHeader += "\n"
 
-	if (!pragmaHeader) {
-		whatever.push("#pragma header")
+	if (!ignorePragmaHeader) {
+		shaderHeader += "#pragma header\n"
 		onlog("Added #pragma header!")
 	}
 
-	if (whatever.length > 0) whatever.push("")
+	if (shaderHeader.length > 0) shaderHeader += "\n"
 
-	if (!round && usesRound) {
-		whatever.push("#define round(a) floor(a + 0.5)")
-		onlog("Added round!")
-	}
-	if (!iResolution) {
-		whatever.push("#define iResolution vec3(openfl_TextureSize, 0.)")
+	if (!ignoreIResolution) {
+		shaderHeader += "#define iResolution vec3(openfl_TextureSize, 0.)\n"
 		onlog("Added iResolution!")
 	}
-	if (!iTime && usesITime) {
-		whatever.push("uniform float iTime;")
+	if (!ignoreITime) {
+		shaderHeader += "uniform float iTime;\n"
 		onlog("Added iTime!")
 	}
-	if (!iChannel0 && usesIChannel0) {
-		whatever.push("#define iChannel0 bitmap")
+	if (!ignoreIChannel0) {
+		shaderHeader += "#define iChannel0 bitmap\n"
 		onlog("Added iChannel0!")
 	}
-	if (!iChannel1 && usesIChannel1) {
-		whatever.push("uniform sampler2D iChannel1;")
+	if (!ignoreIChannel1) {
+		shaderHeader += "uniform sampler2D iChannel1;\n"
 		onlog("Added iChannel1!")
 	}
-	if (!iChannel2 && usesIChannel2) {
-		whatever.push("uniform sampler2D iChannel2;")
+	if (!ignoreIChannel2) {
+		shaderHeader += "uniform sampler2D iChannel2;\n"
 		onlog("Added iChannel2!")
 	}
-	if (!iChannel3 && usesIChannel3) {
-		whatever.push("uniform sampler2D iChannel3;")
+	if (!ignoreIChannel3) {
+		shaderHeader += "uniform sampler2D iChannel3;\n"
 		onlog("Added iChannel3!")
 	}
-	if (!texture) {
-		whatever.push("#define texture flixel_texture2D")
-		if(!megafixed && usesTextureThirdArgument) {
-			whatever.push("")
-			whatever.push(megafix)
-			onlog("Added third argument fix!")
-		}
+	if (!ignoreRound) {
+		shaderHeader += "#define round(a) floor(a+.5)\n"
+		onlog("Added round!")
+	}
+	if (!ignoreTexture) {
+		shaderHeader += "#define texture flixel_texture2D\n"
 		onlog("Added texture!")
 	}
-
-	if (!notupdatingvars) {
-		var needsToAddComment = [
-			usesITimeDelta,
-			usesIFrameRate,
-			usesIFrame,
-			usesIChannelTime,
-			usesIChannelResolution,
-			usesIMouse,
-			usesIDate,
-		].filter(function(e) { return e; })
-		if (needsToAddComment.length > 0) {
-			whatever.push("")
-			whatever.push("// variables which are empty, they need just to avoid crashing shader")
-		}
-		if (usesITimeDelta) whatever.push("uniform float iTimeDelta;")
-		if (usesIFrameRate) whatever.push("uniform float iFrameRate;")
-		if (usesIFrame) whatever.push("uniform int iFrame;")
-		if (usesIChannelTime) whatever.push("#define iChannelTime float[4](iTime, 0., 0., 0.)")
-		if (usesIChannelResolution) whatever.push("#define iChannelResolution vec3[4](iResolution, vec3(0.), vec3(0.), vec3(0.))")
-		if (usesIMouse) whatever.push("uniform vec4 iMouse;")
-		if (usesIDate) whatever.push("uniform vec4 iDate;")
+	if(!ignoreTextureThirdArgumentFix) {
+		shaderHeader += `\n${megafix}\n`
+		onlog("Added third argument fix!")
 	}
 
-	if (!endofshadercomment) {
-		whatever.push("")
-		whatever.push("// end of ShadertoyToFlixel code")
-		onlog("Added end of shader comment!")
+	var shaderHeader_emptyVars = ""
+	if (!ignoreITimeDelta) {
+		shaderHeader_emptyVars += "uniform float iTimeDelta;\n"
+		onlog("Added iTimeDelta!")
+	}
+	if (!ignoreIFrameRate) {
+		shaderHeader_emptyVars += "uniform float iFrameRate;\n"
+		onlog("Added iFrameRate!")
+	}
+	if (!ignoreIFrame) {
+		shaderHeader_emptyVars += "uniform int iFrame;\n"
+		onlog("Added iFrame!")
+	}
+	if (!ignoreIMouse) {
+		shaderHeader_emptyVars += "uniform vec4 iMouse;\n"
+		onlog("Added iMouse!")
+	}
+	if (!ignoreIDate) {
+		shaderHeader_emptyVars += "uniform vec4 iDate;\n"
+		onlog("Added iDate!")
+	}
+	if (!ignoreIChannelTime) {
+		shaderHeader_emptyVars += "#define iChannelTime float[4](iTime, 0., 0., 0.)\n"
+		onlog("Added iChannelTime!")
+	}
+	if (!ignoreIChannelResolution) {
+		shaderHeader_emptyVars += "#define iChannelResolution vec3[4](iResolution, vec3(0.), vec3(0.), vec3(0.))\n"
+		onlog("Added iChannelResolution!")
+	}
+	if (shaderHeader_emptyVars.length > 0) shaderHeader_emptyVars = `\n// variables which are empty, they need just to avoid crashing shader\n` + shaderHeader_emptyVars
+	shaderHeader += shaderHeader_emptyVars // concating
+
+	if (!ignoreShaderHeaderEnd) {
+		shaderHeader += `\n// end of ShadertoyToFlixel header\n`
+		onlog("Added end of shader comment header!")
 	}
 
-	if (whatever.length > 0) whatever.push("")
+	if (shaderHeader.length > 0) shaderHeader += "\n"
 
-	file = whatever.concat(file)
+	file = shaderHeader + file // concating again
 
-	// adds things in end of file
-	if (!main) {
-		file.push("")
-		file.push("void main() {")
-		file.push("\tmainImage(gl_FragColor, openfl_TextureCoordv*openfl_TextureSize);")
-		file.push("}")
+	// add footer
+	if (!ignoreMain) {
+		file += "\n\nvoid main() {\n\tmainImage(gl_FragColor, openfl_TextureCoordv*openfl_TextureSize);\n}"
 		onlog("Added void main!")
 	}
 
 	if (!fixedAlpha) onerror("Can't fix alpha channel! Maybe it already working properly?")
 
-	return file.join('\n')
+	return file
 }
