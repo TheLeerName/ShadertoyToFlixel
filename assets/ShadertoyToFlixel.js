@@ -169,21 +169,21 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 			});
 		}
 
-		if (/\bvoid main\s*(\s*)\b/.test(file[i])) main = true
+		if (/\bvoid\s+main\s*\(\s*\)/.test(file[i])) main = true
 	}
 
 	for (let i = 0; i < file.length; i++) {
 		var tocheck = formatToCheck(file[i])
 		if (doAlphaChannel && tocheck.includes('fragColor=vec4('))
 			file = fixAlphaChannel(file, i)
-		if (/\bvoid main\s*(\s*)\b/.test(file[i])) {
+		if (/\bvoid\s+main\s*\(\s*\)/.test(file[i])) {
 			file = convertVoidMainToShadertoy(file, i)
 		}
 	}
 
 	function convertVoidMainToShadertoy(file, i) {
 		if (!formatToCheck(file[i + 1]).includes('mainImage(gl_FragColor,openfl_TextureCoordv*openfl_TextureSize);')) {
-			file[i] = file[i].replace(/void main\s*(\s*)\b/g, 'void mainImage(out vec4 fragColor, in vec2 fragCoord)')
+			file[i] = file[i].replace(/\bvoid\s+main\s*\(\s*\)/, 'void mainImage(out vec4 fragColor, in vec2 fragCoord)')
 			file = file.join('\n').replaceAll('gl_FragColor', 'fragColor').split('\n')
 			main = false;
 		}
