@@ -159,13 +159,15 @@ vec4 flixel_texture2D(sampler2D bitmap, vec2 coord, float bias) {
 		if (/\biChannelResolution\b/.test(file[i])) usesIChannelResolution = true
 		if (/\bround\s*\(/.test(file[i])) usesRound = true
 		if (/\btexture\s*\(/.test(file[i])) {
-			var regex = /\btexture\s*\(\s*((?:[^)(]+|\([^)(]*\))*)\s*\)/g;
-			// match[0] = texture(iChannel0, vec2(0.5, 0.5), 0.0);
-			// match[1] = iChannel0, vec2(0.5, 0.5), 0.0
+			var regex = /\btexture\s*\(([^)(]*(?:\([^)(]*(?:\([^)(]*(?:\([^)(]*\)[^)(]*)*\)[^)(]*)*\)[^)(]*)*)\)/g;
+			// match[0] = texture(iChannel0, vec2(example(example(0.5)), 0.5), 0.0)
+			// match[1] = iChannel0, vec2(example(example(0.5)), 0.5), 0.0
 
 			[...file[i].matchAll(regex)].forEach(match => {
-				var args = funcArgsCount(match[1]);
-				if(args >= 3) usesTextureThirdArgument = true;
+				if(funcArgsCount(match[1]) >= 3) {
+					usesTextureThirdArgument = true;
+					return;
+				}
 			});
 		}
 
