@@ -7,6 +7,6 @@ if %ERRORLEVEL% NEQ 0 (
 	if not exist node_modules/node-file-dialog/package.json (
 		npm install >nul
 	)
-	call run.bat
+	node index.js
 )
 pause
