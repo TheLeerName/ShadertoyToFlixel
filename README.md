@@ -17,22 +17,22 @@ node.js script which converts fragment source (.frag) glsl shaders from [Shadert
 pls message me if it work on some other platforms!!!!!
 
 ## How to use?
-- install [node.js](https://nodejs.org)
-- open `run.bat`
-- now do what windows say
-- i left night vision shader for you to test this script (its not mine ofc)! [NightVisionFilter.frag](https://github.com/TheLeerName/ShadertoyToFlixel/blob/main/NightVisionFilter.frag)
+1. install [node.js](https://nodejs.org)
+2. open `run.bat`
+3. now do what windows say
+4. i left night vision shader for you to test this script (its not mine ofc)! [NightVisionFilter.frag](https://github.com/TheLeerName/ShadertoyToFlixel/blob/main/NightVisionFilter.frag)
 
 ## How to convert it again to shadertoy?
-- remove `void main()` function *entirely*
-- remove lines from start to `// end of ShadertoyToFlixel header` inclusively
-- profit!!!!!
+1. remove `void main()` function *entirely*
+2. remove lines from start to `// end of ShadertoyToFlixel header` inclusively
+3. profit!!!!!
 
 ## What it exactly do?
-- adding `#pragma header`
-- adding variables from shadertoy like `iResolution` and `iTime`
-- adding additional `flixel_texture2D` function with three arguments to use `bias` argument
-- replacing alpha value (usually `1.0`) to alpha of sprite in `fragColor`
-- adding `void main` with calling `void mainImage` function
+1. adding `#pragma header`
+2. adding variables from shadertoy like `iResolution` and `iTime`
+3. adding additional `flixel_texture2D` function with three arguments to use `bias` argument
+4. replacing alpha value (usually `1.0`) to alpha of sprite in `fragColor`
+5. adding `void main` with calling `void mainImage` function
 
 ## Special thanks
 - [NeeEoo](https://github.com/NeeEoo) - helping with regexes and optimize generated code size

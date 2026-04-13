@@ -3,7 +3,7 @@ var coolButtonDownload = document.getElementById('coolbuttondownload')
 var coolTextArea = document.getElementById('cooltextarea')
 var logArea = document.getElementById('logarea')
 
-coolTextArea.placeholder = 'Paste link to shader or move shader code from shadertoy here...\nOr drop text file in this text field...\n\nSupports shaders with only Image tab!\n(can be with Common too, just copy code from Common to Image)'
+coolTextArea.placeholder = 'Here what you can do:\n\n- Drop text file here\n\n- Paste shader code from shadertoy shader Image tab here (can be with Common too, just add code to start)\n\n- Paste link here with shader code (can be shadertoy shader webpage link)'
 
 function log(text, link) {
 	var el = document.createElement(link != null ? 'a' : 'h5')
@@ -34,37 +34,9 @@ function clearLogs() {
 		logArea.removeChild(logArea.firstChild)
 }
 
-log(`Running on ${versionSTF} version`)
+log(`Running on ${STF.version} version`)
 log(`Good ${getdaypart()}, user!`)
 log(`Click to see guide`, `https://i.imgur.com/LCGvaTd.png`)
-
-
-var shadertoyViewLink = "https://www.shadertoy.com/view/"
-function checkForLink() {
-	if (coolTextArea.value.startsWith(shadertoyViewLink)) {
-		var prevCoolTextValue = coolTextArea.value
-		var shaderID = coolTextArea.value.substring(shadertoyViewLink.length)
-		coolTextArea.value = `Fetching ${shaderID}...`
-		log(`Fetching ${shaderID}...`)
-
-		// idk how to properly store api keys sorry
-		fetch(`https://www.shadertoy.com/api/v1/shaders/${shaderID}?key=NdHlRm`)
-		.then(r => r.json())
-		.then(r => {
-			for (let tab of r.Shader.renderpass) if (tab.type == "image") {
-				coolTextArea.value = tab.code
-				log(`Loaded ${tab.code.length} symbols`)
-				return
-			}
-			coolTextArea.value = prevCoolTextValue
-			throw `Can't find image`
-		})
-		.catch(e => {
-			coolTextArea.value = prevCoolTextValue
-			error(e)
-		})
-	}
-}
 
 coolTextArea.addEventListener('dragover', e => {
 	e.stopPropagation()
@@ -88,7 +60,6 @@ coolTextArea.addEventListener('drop', e => {
 		var fr = new FileReader()
 		fr.onload = function() {
 			coolTextArea.value = fr.result
-			checkForLink()
 			log(`Loaded ${fr.result.length} symbols`)
 		}
 		fr.readAsText(files[0])
@@ -96,17 +67,15 @@ coolTextArea.addEventListener('drop', e => {
 	}
 	log(`Getting data from dragged text...`)
 	coolTextArea.value = e.dataTransfer.getData("text")
-	checkForLink()
 	log(`Loaded ${coolTextArea.value.length} symbols`)
 })
-coolTextArea.addEventListener('input', e => checkForLink())
 
 coolButtonStart.onclick = function() {
 	coolButtonStart.setAttribute('disabled', '')
 	coolButtonStart.value = 'Converting...'
 	log("Converting started!")
 
-	coolTextArea.value = doThing(coolTextArea.value, log, error)
+	coolTextArea.value = STF.convert(coolTextArea.value, log, error)
 	coolButtonStart.value = 'Successfully converted!'
 	log("Successfully converted!")
 	coolTextArea.scrollTop = coolTextArea.scrollHeight
