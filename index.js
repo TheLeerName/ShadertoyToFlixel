@@ -3,7 +3,7 @@ var coolButtonDownload = document.getElementById('coolbuttondownload')
 var coolTextArea = document.getElementById('cooltextarea')
 var logArea = document.getElementById('logarea')
 
-coolTextArea.placeholder = 'Here what you can do:\n\n- Drop text file here\n\n- Paste shader code from shadertoy shader Image tab here (can be with Common too, just add code to start)\n\n- Paste link here with shader code (can be shadertoy shader webpage link)'
+coolTextArea.placeholder = 'Here what you can do:\n\n- Drop text file here\n\n- Paste shader code from shadertoy shader Image tab here (can be with Common too, just add code to start)'
 
 function log(text, link) {
 	var el = document.createElement(link != null ? 'a' : 'h5')
